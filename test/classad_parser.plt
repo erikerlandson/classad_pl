@@ -4,7 +4,7 @@
 :- use_module(library(lists)).
 :- use_module(library(assoc)).
 
-:- use_module('../src/classad_parser.pl').
+:- use_module('../lib/classad_parser.pl').
 
 :- begin_tests(classad_parser_ut).
 
@@ -147,6 +147,10 @@ test('select 1', [nondet]) :-
 test('select 2', [nondet]) :-
     parse("a.b.c", E),
     assertion(E == '.'('.'(a,b), c)).
+
+test('select 3', [nondet]) :-
+    parse("parent.parent.c", E),
+    assertion(E == '.'('.'(parent,parent), c)).
 
 test('index and select 1', [nondet]) :-
     parse("a.b.c[j+1]", E),
