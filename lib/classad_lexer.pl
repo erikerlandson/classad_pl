@@ -5,7 +5,7 @@
 :- use_module(library(lists)).
 
 % invoke the grammar rule predicates on a string to get a token list
-lex(S, TL) :- tokseq(TL, S, []).
+lex(S, TL) :- tokseq(TL, S, []), !.
 
 % The top level of the lexing grammar: parse a
 % sequence of tokens out of a prolog string.

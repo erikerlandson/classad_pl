@@ -14,7 +14,7 @@ parse(S, E) :-
     parse_tl(TL, E).
 
 % invoke the grammar rule predicates on a token list to get an expr-tree
-parse_tl(TL, E) :- expr(E, TL, []).
+parse_tl(TL, E) :- expr(E, TL, []), !.
 
 % reserved words in the classad spec
 reserved_expr(A) :- member(A, ['true', 'false', 'parent', 'undefined', 'error']).
