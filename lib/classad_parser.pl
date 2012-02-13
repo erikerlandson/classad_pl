@@ -53,7 +53,7 @@ idxrest(SE, E) --> ['['], expr(SE2), [']'], { TE = '[]'(SE,SE2) }, idxrest(TE, E
 idxrest(E, E) --> [].
 
 selseq(E) --> atomic(SE), selrest(SE, E).
-selrest(SE, E) --> ['.'], selref(SE2), { TE = '.'(SE,SE2) }, selrest(TE, E).
+selrest(SE, E) --> ['.'], selref(SE2), { TE = '[sel]'(SE,SE2) }, selrest(TE, E).
 selrest(E, E) --> [].
 selref(SR) --> ident(SR).
 selref('parent') --> ['parent'].

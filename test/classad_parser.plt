@@ -142,19 +142,19 @@ test('index 2', [nondet]) :-
 
 test('select 1', [nondet]) :-
     parse("a.b", E),
-    assertion(E == '.'(a,b)).
+    assertion(E == '[sel]'(a,b)).
 
 test('select 2', [nondet]) :-
     parse("a.b.c", E),
-    assertion(E == '.'('.'(a,b), c)).
+    assertion(E == '[sel]'('[sel]'(a,b), c)).
 
 test('select 3', [nondet]) :-
     parse("parent.parent.c", E),
-    assertion(E == '.'('.'(parent,parent), c)).
+    assertion(E == '[sel]'('[sel]'(parent,parent), c)).
 
 test('index and select 1', [nondet]) :-
     parse("a.b.c[j+1]", E),
-    assertion(E == '[]'('.'('.'(a,b), c), '+'(j,1))).
+    assertion(E == '[]'('[sel]'('[sel]'(a,b), c), '+'(j,1))).
 
 test('list 0', [nondet]) :-
     parse("{}", E),
