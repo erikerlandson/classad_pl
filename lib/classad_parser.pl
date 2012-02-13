@@ -98,5 +98,5 @@ reserved(R) --> [R], { reserved_expr(R) }.
 
 % numbers, strings, identifiers:
 num(N) --> [N], { number(N) }.
-str(S) --> [S], { S=str(_) }.
+str(S) --> [S], { S='[str]'(_) }.
 ident(I) --> [I], { atomic(I), \+number(I), \+reserved_expr(I), \+reserved_op(I) }.

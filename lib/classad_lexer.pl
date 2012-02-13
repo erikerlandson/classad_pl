@@ -41,7 +41,7 @@ tok(T) --> sym(T).
 
 
 % expansion of string tokens
-str(S) --> "\"", strseq(SS), "\"", {atom_codes(A, SS), S=str(A)}.
+str(S) --> "\"", strseq(SS), "\"", {atom_codes(A, SS), S='[str]'(A)}.
 
 strseq(SS) --> regchar(C), strseq(R), {SS=[C|R]}.
 strseq([]) --> "".

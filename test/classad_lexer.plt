@@ -17,7 +17,7 @@ test('whitespace only', [nondet]) :-
 
 test('string token', [nondet]) :-
     lex("\"a string\"", T),
-    assertion(T == [str('a string')]).
+    assertion(T == ['[str]'('a string')]).
 
 test('integer', [nondet]) :-
     lex("42", T),
@@ -77,7 +77,7 @@ test('expression 1', [nondet]) :-
 
 test('expression 2', [nondet]) :-
     lex("ifthenelse(name =!= \"fred\", name, \"wilma\")", T),
-    assertion(T == ['ifthenelse', '(', 'name', '=!=', str('fred'), ',', 'name', ',', str('wilma'), ')']).
+    assertion(T == ['ifthenelse', '(', 'name', '=!=', '[str]'('fred'), ',', 'name', ',', '[str]'('wilma'), ')']).
 
 test('identifiers', [nondet]) :-
     lex("Scope._CamelCase_Ident", T),

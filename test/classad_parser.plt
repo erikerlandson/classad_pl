@@ -14,7 +14,7 @@ test('ident expr', [nondet]) :-
 
 test('str expr', [nondet]) :-
     parse("\"a\"", E),
-    assertion(E == str('a')).
+    assertion(E == '[str]'('a')).
 
 test('num expr', [nondet]) :-
     parse("42", E),
@@ -106,7 +106,7 @@ test('comp ==', [nondet]) :-
 
 test('comp =?=', [nondet]) :-
     parse("name =?= \"fred\"", E),
-    assertion(E == '=?='(name, str(fred))).
+    assertion(E == '=?='(name, '[str]'(fred))).
 
 test('comp <', [nondet]) :-
     parse("-2*a   <   b + -4 - c", E),
