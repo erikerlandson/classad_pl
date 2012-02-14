@@ -46,4 +46,24 @@ test('classad 1') :-
     eval(b, R, R2),
     assertion(R2 == 0).
 
+test('list 0') :-
+    parse("[a = {};]", C),
+    eval(a, C, R),
+    assertion(R == []).
+
+test('list 1') :-
+    parse("[a = {0};]", C),
+    eval(a, C, R),
+    assertion(R == [0]).
+
+test('list 2') :-
+    parse("[a = {0, true};]", C),
+    eval(a, C, R),
+    assertion(R == [0, true]).
+
+test('list 3') :-
+    parse("[x = 42; a = {0, true, x};]", C),
+    eval(a, C, R),
+    assertion(R == [0, true, 42]).
+
 :- end_tests(classad_eval_ut).
