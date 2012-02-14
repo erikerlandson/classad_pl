@@ -66,4 +66,29 @@ test('list 3') :-
     eval(a, C, R),
     assertion(R == [0, true, 42]).
 
+test('undefined var 1') :-
+    parse("[]", C),
+    eval(a, C, R),
+    assertion(R == undefined).
+
+test('select 1') :-
+    parse("[a = [b=0;];]", C),
+    eval(as_expr "a.b", C, R),
+    assertion(R == 0).
+
+test('select 2') :-
+    parse("[a = [b=[c=42;];];]", C),
+    eval(as_expr "a.b.c", C, R),
+    assertion(R == 42).
+
+test('parent 1') :-
+    parse("[a = [b=parent.x; x=4;]; x = 42;]", C),
+    eval(as_expr "a.b", C, R),
+    assertion(R == 42).
+
+test('parent 2') :-
+    parse("[a = [b=[c=parent.parent.x; x=4;]; x=2;]; x = 42;]", C),
+    eval(as_expr "a.b.c", C, R),
+    assertion(R == 42).
+
 :- end_tests(classad_eval_ut).
