@@ -9,7 +9,7 @@
 :- use_module(classad_parser).
 
 
-eval(E, C, R) :- ev([C], E, R).
+eval(E, C, R) :- ev([C], E, R), !.
 
 % These all evaluate as themselves, independent of any context.
 % Declare these first.
