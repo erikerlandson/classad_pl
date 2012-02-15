@@ -81,6 +81,11 @@ test('select 2') :-
     eval(as_expr "a.b.c", C, R),
     assertion(R == 42).
 
+test('select 3') :-
+    parse("[a = [b=[c=42;];];]", C),
+    eval(as_expr "a.z.c", C, R),
+    assertion(R == undefined).
+
 test('parent 1') :-
     parse("[a = [b=parent.x; x=4;]; x = 42;]", C),
     eval(as_expr "a.b", C, R),
@@ -90,5 +95,15 @@ test('parent 2') :-
     parse("[a = [b=[c=parent.parent.x; x=4;]; x=2;]; x = 42;]", C),
     eval(as_expr "a.b.c", C, R),
     assertion(R == 42).
+
+test('parent 3') :-
+    parse("[a = [b=parent.parent.x; x=4;]; x = 42;]", C),
+    eval(as_expr "a.b", C, R),
+    assertion(R == undefined).
+
+test('parent 4') :-
+    parse("[a = [b=parent.parent.parent.x; x=4;]; x = 42;]", C),
+    eval(as_expr "a.b", C, R),
+    assertion(R == undefined).
 
 :- end_tests(classad_eval_ut).

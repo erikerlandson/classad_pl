@@ -31,6 +31,10 @@ atomic_expr('[classad]'(_)).
 
 variable(V) :- atom(V), V \= [], V \= parent, \+atomic_expr(V).
 
+% these may arise from select operator, possibly others
+ev([[undefined|_], _], [[], undefined]).
+ev([[error|_], _], [[], error]).
+
 % Atomic expressions evaluate as themselves, independent of any context.
 % Attempt to match these first
 ev([C, E], [C, E]) :- atomic_expr(E).
@@ -47,7 +51,7 @@ ev([[C|P], V], R) :- variable(V), '[classad]'(M)=C, ((get_assoc(V, M, E), ev([[C
 
 % select op
 % here we know from grammar that 'V' is variable, or 'parent'
-ev([C, '[sel]'(SE, V)], R) :- ev([C, SE], [SC, SR]), functor(SR, '[classad]', 1), ev([[SR|SC], V], R).
+ev([C, '[sel]'(SE, V)], R) :- ev([C, SE], [SC, SR]), ev([[SR|SC], V], R).
 
 % a list evaluates by evaluating each of its elements:
 % match this prior to atom/var below, because '[]' is considered an atom.
@@ -56,4 +60,4 @@ ev([C, E], [C, R]) :- is_list(E), maplist(pair(C), E, T), maplist(ev, T, RT), ma
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
 % or perhaps throwing an exception.
-ev([C, _], [C, error]).
+ev([_, _], [[], error]).
