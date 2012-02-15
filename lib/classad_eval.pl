@@ -59,10 +59,10 @@ promote_to_boolean(_, error).
 
 % This predicate assumes that all arguments have already been type checked/promoted
 % in a way that is appropriate for the given operator:
-ev_strict_binary(_, undefined, _, undefined).
-ev_strict_binary(_, _, undefined, undefined).
 ev_strict_binary(_, error, _, error).
 ev_strict_binary(_, _, error, error).
+ev_strict_binary(_, undefined, _, undefined).
+ev_strict_binary(_, _, undefined, undefined).
 ev_strict_binary('+', X, Y, R) :- R is X + Y.
 ev_strict_binary('-', X, Y, R) :- R is X - Y.
 ev_strict_binary('*', X, Y, R) :- R is X * Y.
