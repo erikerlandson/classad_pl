@@ -50,6 +50,13 @@ promote_to_numeric(false, 0).
 promote_to_numeric(undefined, undefined).
 promote_to_numeric(_, error).
 
+promote_to_boolean(true, true).
+promote_to_boolean(false, false).
+promote_to_boolean(N, false) :- (N is 0) ; (N is 0.0).
+promote_to_boolean(N, true) :- number(N).
+promote_to_boolean(undefined, undefined).
+promote_to_boolean(_, error).
+
 % This predicate assumes that all arguments have already been type checked/promoted
 % in a way that is appropriate for the given operator:
 ev_strict_binary(_, undefined, _, undefined).
@@ -62,6 +69,15 @@ ev_strict_binary('*', X, Y, R) :- R is X * Y.
 ev_strict_binary('/', X, Y, R) :- integer(X), integer(Y), R is X // Y.
 ev_strict_binary('/', X, Y, R) :- R is X / Y.
 ev_strict_binary(_, _, _, error).
+
+ev_and(error, _, error).
+ev_and(_, error, error).
+ev_and(false, _, false).
+ev_and(_, false, false).
+ev_and(_, undefined, undefined).
+ev_and(undefined, _, undefined).
+ev_and(true, true, true).
+ev_and(_, _, error).
 
 % these may arise from select operator, possibly others
 ev([[undefined|C], _], [C, undefined]).
@@ -109,6 +125,16 @@ ev([C, E], [C, R]) :-
     ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
     promote_to_numeric(LR, LN), promote_to_numeric(RR, RN), 
     ev_strict_binary(OP, LN, RN, R).
+
+% && operator
+ev([C, '&&'(LE, RE)], [C, R]) :-
+    % evaluate left subexpr:
+    ev([C, LE], [_,LR]), promote_to_boolean(LR, LB),
+    % false or error allows lazy eval:
+    (((LB = false ; LB = error), R = LB)
+    ; % else
+    % otherwise we also eval right subexpr and compute:
+    (ev([C, RE], [_,RR]), promote_to_boolean(RR, RB), ev_and(LB, RB, R))).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,

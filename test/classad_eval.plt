@@ -176,5 +176,44 @@ test('divide 2') :-
     eval(as_expr "a", C, R),
     assertion(R == 5.0).
 
+test('&& 1') :-
+    parse("[a = true && true;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == true).
+
+test('&& 2') :-
+    parse("[a = false && b;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == false).
+
+test('&& 3') :-
+    parse("[a = 0 && \"z\";]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == false).
+
+test('&& 4') :-
+    parse("[a = 1 && \"z\";]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == error).
+
+test('&& 5') :-
+    parse("[a = \"z\" && false;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == error).
+
+test('&& 6') :-
+    parse("[a = 1.0 && b;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == undefined).
+
+test('&& 7') :-
+    parse("[a = b && 1.0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == undefined).
+
+test('&& 8') :-
+    parse("[a = b && 0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == false).
 
 :- end_tests(classad_eval_ut).
