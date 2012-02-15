@@ -49,13 +49,13 @@ ev([[_C|[CP|CR]], parent], [CR, CP]).
 ev([[], V], [[],undefined]) :- variable(V).
 ev([[C|P], V], R) :- variable(V), '[classad]'(M)=C, ((get_assoc(V, M, E), ev([[C|P], E], R)) ; ev([P, V], R)).
 
-% select op
-% here we know from grammar that 'V' is variable, or 'parent'
-ev([C, '[sel]'(SE, V)], R) :- ev([C, SE], [SC, SR]), ev([[SR|SC], V], R).
-
 % a list evaluates by evaluating each of its elements:
 % match this prior to atom/var below, because '[]' is considered an atom.
 ev([C, E], [C, R]) :- is_list(E), maplist(pair(C), E, T), maplist(ev, T, RT), maplist(nth(2), RT, R).
+
+% select op
+% here we know from grammar that 'V' is variable, or 'parent'
+ev([C, '[sel]'(SE, V)], R) :- ev([C, SE], [SC, SR]), ev([[SR|SC], V], R).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
