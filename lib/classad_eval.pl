@@ -66,6 +66,8 @@ ev_strict_binary(_, _, undefined, undefined).
 ev_strict_binary('+', X, Y, R) :- R is X + Y.
 ev_strict_binary('-', X, Y, R) :- R is X - Y.
 ev_strict_binary('*', X, Y, R) :- R is X * Y.
+ev_strict_binary('/', _, 0, error).
+ev_strict_binary('/', _, 0.0, error).
 ev_strict_binary('/', X, Y, R) :- integer(X), integer(Y), R is X // Y.
 ev_strict_binary('/', X, Y, R) :- R is X / Y.
 ev_strict_binary(_, _, _, error).
