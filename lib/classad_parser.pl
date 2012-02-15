@@ -17,8 +17,34 @@ parse(S, E) :-
 parse_tl(TL, E) :- expr(E, TL, []), !.
 
 % reserved words in the classad spec
-reserved_expr(A) :- member(A, ['true', 'false', 'parent', 'undefined', 'error']).
-reserved_op(A) :- member(A, ['is', 'isnt']).
+reserved_expr(true).
+reserved_expr(false).
+reserved_expr(parent).
+reserved_expr(undefined).
+reserved_expr(error).
+
+reserved_op(is).
+reserved_op(isnt).
+
+comp_op('==').
+comp_op('!=').
+comp_op('<=').
+comp_op('>=').
+comp_op('<').
+comp_op('>').
+comp_op('=?=').
+comp_op('=!=').
+
+add_op('+').
+add_op('-').
+
+mul_op('*').
+mul_op('/').
+mul_op('%').
+
+unary_op('!').
+unary_op('-').
+unary_op('+').
 
 expr(E) --> cond(E).
 
@@ -34,18 +60,18 @@ andseq(E) --> comp(SE), andrest(SE, E).
 andrest(SE, E) --> ['&&'], comp(SE2), { TE = '&&'(SE,SE2) }, andrest(TE, E).
 andrest(E, E) --> [].
 
-comp(E) --> addsubseq(SE1), [OP], { member(OP, ['==','!=','<=','>=','<','>','=?=','=!=']) }, addsubseq(SE2), { E =.. [OP,SE1,SE2] }.
+comp(E) --> addsubseq(SE1), [OP], { comp_op(OP) }, addsubseq(SE2), { E =.. [OP,SE1,SE2] }.
 comp(E) --> addsubseq(E).
 
 addsubseq(E) --> muldivseq(SE), addsubrest(SE, E).
-addsubrest(SE, E) --> [OP], { member(OP, ['+','-']) }, muldivseq(SE2), { TE =.. [OP,SE,SE2] }, addsubrest(TE, E).
+addsubrest(SE, E) --> [OP], { add_op(OP) }, muldivseq(SE2), { TE =.. [OP,SE,SE2] }, addsubrest(TE, E).
 addsubrest(E, E) --> [].
 
 muldivseq(E) --> unary(SE), muldivrest(SE, E).
-muldivrest(SE, E) --> [OP], { member(OP, ['*','/','%']) }, unary(SE2), { TE =.. [OP,SE,SE2] }, muldivrest(TE, E).
+muldivrest(SE, E) --> [OP], { mul_op(OP) }, unary(SE2), { TE =.. [OP,SE,SE2] }, muldivrest(TE, E).
 muldivrest(E, E) --> [].
 
-unary(E) --> [OP], { member(OP,['!','-','+']) }, unary(SE), { E =.. [OP,SE] }.
+unary(E) --> [OP], { unary_op(OP) }, unary(SE), { E =.. [OP,SE] }.
 unary(E) --> idxseq(E).
 
 idxseq(E) --> selseq(SE), idxrest(SE, E).
