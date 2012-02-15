@@ -80,8 +80,8 @@ ev_and(true, true, true).
 ev_and(_, _, error).
 
 % these may arise from select operator, possibly others
-ev([[undefined|C], _], [C, undefined]).
-ev([[error|C], _], [C, error]).
+ev([[undefined|P], _], [P, undefined]).
+ev([[C|P], _], [P, error]) :- \+functor(C, '[classad]', 1).
 
 % Atomic expressions evaluate as themselves, independent of any context.
 % Attempt to match these first
