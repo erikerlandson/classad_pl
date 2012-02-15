@@ -31,6 +31,28 @@ atomic_expr('[classad]'(_)).
 
 variable(V) :- atom(V), V \= [], V \= parent, \+atomic_expr(V).
 
+arithmetic_op('+').
+arithmetic_op('-').
+arithmetic_op('*').
+arithmetic_op('/').
+
+promote_to_numeric(N, N) :- number(N).
+promote_to_numeric(true, 1).
+promote_to_numeric(false, 0).
+promote_to_numeric(undefined, undefined).
+promote_to_numeric(_, error).
+
+ev_arith(_, undefined, _, undefined).
+ev_arith(_, _, undefined, undefined).
+ev_arith(_, error, _, error).
+ev_arith(_, _, error, error).
+ev_arith('+', X, Y, R) :- R is X + Y.
+ev_arith('-', X, Y, R) :- R is X - Y.
+ev_arith('*', X, Y, R) :- R is X * Y.
+ev_arith('/', X, Y, R) :- integer(X), integer(Y), R is X // Y.
+ev_arith('/', X, Y, R) :- R is X / Y.
+ev_arith(_, _, _, error).
+
 % these may arise from select operator, possibly others
 ev([[undefined|C], _], [C, undefined]).
 ev([[error|C], _], [C, error]).
@@ -56,6 +78,13 @@ ev([C, E], [C, R]) :- is_list(E), maplist(pair(C), E, T), maplist(ev, T, RT), ma
 % select op
 % here we know from grammar that 'V' is variable, or 'parent'
 ev([C, '[sel]'(SE, V)], R) :- ev([C, SE], [SC, SR]), ev([[SR|SC], V], R).
+
+% arithmetic ops
+ev([C, E], [C, R]) :- 
+    E=..[OP, SL, SR], arithmetic_op(OP), 
+    ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
+    promote_to_numeric(LR, LN), promote_to_numeric(RR, RN), 
+    ev_arith(OP, LN, RN, R).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,

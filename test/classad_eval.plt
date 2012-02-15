@@ -106,4 +106,59 @@ test('parent 4') :-
     eval(as_expr "a.b", C, R),
     assertion(R == undefined).
 
+test('add 1') :-
+    parse("[a = 1 + 2;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 3).
+
+test('add 2') :-
+    parse("[a = 1 + x; x=3.0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 4.0).
+
+test('add 3') :-
+    parse("[a = 1 + x; x=3.0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 4.0).
+
+test('add 4') :-
+    parse("[a = 1 + x;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == undefined).
+
+test('add 5') :-
+    parse("[a = 1 + x; x = true;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 2).
+
+test('add 6') :-
+    parse("[a = 1 + x; x = \"s\";]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == error).
+
+test('sub 1') :-
+    parse("[a = 3 - 2;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 1).
+
+test('mul 1') :-
+    parse("[a = 3.0 * 2;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 6.0).
+
+test('mul 2') :-
+    parse("[a = 3 * 2;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 6).
+
+test('divide 1') :-
+    parse("[a = 10 / 2;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 5).
+
+test('divide 2') :-
+    parse("[a = 10 / 2.0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 5.0).
+
 :- end_tests(classad_eval_ut).
