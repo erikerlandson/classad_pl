@@ -86,6 +86,11 @@ test('select 3') :-
     eval(as_expr "a.z.c", C, R),
     assertion(R == undefined).
 
+test('select 4') :-
+    parse("[a = [z=0; b=[c=42;];];]", C),
+    eval(as_expr "a.z.c", C, R),
+    assertion(R == error).
+
 test('parent 1') :-
     parse("[a = [b=parent.x; x=4;]; x = 42;]", C),
     eval(as_expr "a.b", C, R),
@@ -175,6 +180,16 @@ test('divide 2') :-
     parse("[a = 10 / 2.0;]", C),
     eval(as_expr "a", C, R),
     assertion(R == 5.0).
+
+test('divide 3') :-
+    parse("[a = 10 / 0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == error).
+
+test('divide 4') :-
+    parse("[a = 10 / 0.0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == error).
 
 test('&& 1') :-
     parse("[a = true && true;]", C),
