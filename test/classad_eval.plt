@@ -106,6 +106,21 @@ test('parent 4') :-
     eval(as_expr "a.b", C, R),
     assertion(R == undefined).
 
+test('var context pop 1') :-
+    parse("[a = [b=x;]; x = 42;]", C),
+    eval(as_expr "a.b", C, R),
+    assertion(R == 42).
+
+test('var cyclic 1') :-
+    parse("[a = b; b = a;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == undefined).
+
+test('var cyclic 2') :-
+    parse("[a = b+c; b = 1; c = 2 * d; d = a;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == undefined).
+
 test('add 1') :-
     parse("[a = 1 + 2;]", C),
     eval(as_expr "a", C, R),
@@ -160,5 +175,6 @@ test('divide 2') :-
     parse("[a = 10 / 2.0;]", C),
     eval(as_expr "a", C, R),
     assertion(R == 5.0).
+
 
 :- end_tests(classad_eval_ut).

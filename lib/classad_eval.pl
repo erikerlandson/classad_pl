@@ -10,6 +10,8 @@
 
 :- op(1, fx, user:as_expr).
 
+:- dynamic evvg/2.
+
 eval(as_expr S, C, R) :- parse(S, E), eval(E, C, R), !.
 
 eval(E, C, R) :- functor(C, '[classad]', 1), eval(E, [C], R), !.
@@ -69,7 +71,21 @@ ev([[_C|[CP|CR]], parent], [CR, CP]).
 
 % evaluating a variable:
 ev([[], V], [[],undefined]) :- variable(V).
-ev([[C|P], V], R) :- variable(V), '[classad]'(M)=C, ((get_assoc(V, M, E), ev([[C|P], E], R)) ; ev([P, V], R)).
+ev([[C|P], V], R) :- 
+    variable(V), '[classad]'(M)=C,
+    % check for V in the current context:
+    (get_assoc(V, M, E),
+        % we found V in the current context. check for cyclic dependency:
+        ((evvg(V, [C|P]),
+            % V is aready a goal, so we have detected a cyclic dependency:
+            R = [[C|P], undefined])
+        ; % else
+            % V is not on the current goal list, so it is safe to evaluate
+            % assert V as an active evaluation goal until we are finished evaluating.
+            (assertz(evvg(V, [C|P])), ev([[C|P], E], R), retract(evvg(V, [C|P])))) 
+    ; % else
+        % V was not in current context, so try popping to parent context:
+        ev([P, V], R)).
 
 % a list evaluates by evaluating each of its elements:
 % match this prior to atom/var below, because '[]' is considered an atom.
