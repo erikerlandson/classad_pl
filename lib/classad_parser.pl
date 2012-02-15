@@ -96,12 +96,14 @@ atomic(E) --> num(E).
 atomic(E) --> str(E).
 atomic(E) --> ident(E).
 
-% a classad is a sequence of assignments: var = expr;
+% a classad is a sequence of assignments: var = expr; (last ';' optional)
 % I load these into an association list from the standard assoc library
-classad(E) --> ['['], { list_to_assoc([], Mi) }, assignseq(Mi, Mo), [']'], { E = '[classad]'(Mo) }.
-assign(Mi, Mo) --> ident(V), ['='], expr(E), [';'], { put_assoc(V, Mi, E, Mo) }.
-assignseq(Mi, Mo) --> assign(Mi, Mt), assignseq(Mt, Mo).
+classad('[classad]'(Mo)) --> ['['], { list_to_assoc([], Mi) }, assignseq(Mi, Mo), [']'].
+assignseq(Mi, Mo) --> assign(Mi, Mt), assignrest(Mt, Mo).
 assignseq(M, M) --> [].
+assignrest(Mi, Mo) --> [';'], assignseq(Mi, Mo).
+assignrest(M, M) --> [].
+assign(Mi, Mo) --> ident(V), ['='], expr(E), { put_assoc(V, Mi, E, Mo) }.
 
 % a list is a comma-separated sequence of expressions between {}.
 list(E) --> ['{'], exprseq(E), ['}'].
@@ -110,9 +112,9 @@ list(E) --> ['{'], exprseq(E), ['}'].
 func(E) --> ident(F), ['('], exprseq(A), [')'], { E=..[F,A] }.
 
 % a comma-separated sequence of expressions, possibly empty
-exprseq(S) --> expr(E), exprrest(R), { S=[E|R] }.
+exprseq([E|R]) --> expr(E), exprrest(R).
 exprseq([]) --> [].
-exprrest(S) --> [','], expr(E), exprrest(R), { S=[E|R] }.
+exprrest([E|R]) --> [','], expr(E), exprrest(R).
 exprrest([]) --> [].
 
 % parenthesized sub-expressions:

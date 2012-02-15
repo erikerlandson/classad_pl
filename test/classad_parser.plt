@@ -191,6 +191,16 @@ test('classad 3') :-
     assertion(M2 == y-'*'(2,x)),
     assertion(LL == [a-0]).
 
+test('classad 4') :-
+    parse("[x=0]", E),
+    E = '[classad]'(M), assoc_to_list(M, L),
+    assertion(L == [x-0]).
+
+test('classad 5') :-
+    parse("[x=0; y=2*x]", E),
+    E = '[classad]'(M), assoc_to_list(M, L),
+    assertion(L == [x-0, y-'*'(2,x)]).
+
 test('conditional 1') :-
     parse("(a <= 0) ? 0 : 2*a", E),
     assertion(E == '?:'('<='(a, 0), 0, '*'(2,a))). 
