@@ -7,18 +7,21 @@
 % invoke the grammar rule predicates on a string to get a token list
 lex(S, TL) :- tokseq(TL, S, []), !.
 
+wstype(white).
+wstype(end_of_line).
+
 % The top level of the lexing grammar: parse a
 % sequence of tokens out of a prolog string.
 % a whitespace char is just consumed, and adds nothing
 % to the token list: 
-tokseq(L) --> wschar, tokseq(R), {L=R}.
+tokseq(L) --> wschar, tokseq(L).
 % if you consume a token add it to the list:
-tokseq(L) --> tok(T), tokseq(R), {L=[T|R]}.
+tokseq([T|R]) --> tok(T), tokseq(R).
 % basis case: nothing but empty string is left:
 tokseq([]) --> "".
 
 % consume a whitespace character:
-wschar --> [C], {char_type(C,T), member(T,[white,end_of_line])}.
+wschar --> [C], {char_type(C,T), wstype(T)}.
 
 % strings are tokens
 % put this expansion rule first, since we want anything starting with
@@ -41,9 +44,9 @@ tok(T) --> sym(T).
 
 
 % expansion of string tokens
-str(S) --> "\"", strseq(SS), "\"", {atom_codes(A, SS), S='[str]'(A)}.
+str('[str]'(A)) --> "\"", strseq(SS), "\"", {atom_codes(A, SS)}.
 
-strseq(SS) --> regchar(C), strseq(R), {SS=[C|R]}.
+strseq([C|R]) --> regchar(C), strseq(R).
 strseq([]) --> "".
 
 regchar(C) --> [C], { [C]\="\"", char_type(C, ascii) }.
@@ -53,7 +56,7 @@ regchar(C) --> [C], { [C]\="\"", char_type(C, ascii) }.
 ident(I) --> ihead(C), irest(R), { atom_codes(A, [C|R]), downcase_atom(A, I) }.
 
 ihead(C) --> [C], { char_type(C, alpha) ; [C]="_" }.
-irest(L) --> [C], { char_type(C, alnum) ; [C]="_" }, irest(R), {L=[C|R]}.
+irest([C|R]) --> [C], { char_type(C, alnum) ; [C]="_" }, irest(R).
 irest([]) --> "".
 
 
@@ -69,44 +72,46 @@ dpseq([]) --> "".
 expseq(S) --> expchar(E), expsign(ES), dhead(D), drest(R), {flatten([E,ES,D,R], S)}.
 expseq([]) --> "".
 
-expchar(C) --> [C], { member(C, "eE") }.
+expchar("e") --> "e".
+expchar("e") --> "E".
 
-expsign(C) --> [C], { member(C, "+-") }.
+expsign("+") --> "+".
+expsign("-") --> "-".
 expsign([]) --> "".
 
 dhead(D) --> [D], {char_type(D, digit)}.
-drest(L) --> dhead(D), drest(R), {L=[D|R]}.
+drest([D|R]) --> dhead(D), drest(R).
 drest([]) --> "".
 
 
 % symbol tokens
 % to get longest-lex behavior as the first choice from
 % prolog proof, define these starting with longest tokens first.
-sym(T) --> "=?=", {T='=?='}.
-sym(T) --> "=!=", {T='=!='}.
-sym(T) --> "||", {T='||'}.
-sym(T) --> "&&", {T='&&'}.
-sym(T) --> "<=", {T='<='}.
-sym(T) --> ">=", {T='>='}.
-sym(T) --> "==", {T='=='}.
-sym(T) --> "!=", {T='!='}.
-sym(T) --> "(", {T='('}.
-sym(T) --> ")", {T=')'}.
-sym(T) --> "[", {T='['}.
-sym(T) --> "]", {T=']'}.
-sym(T) --> "{", {T='{'}.
-sym(T) --> "}", {T='}'}.
-sym(T) --> ",", {T=','}.
-sym(T) --> "<", {T='<'}.
-sym(T) --> ">", {T='>'}.
-sym(T) --> "=", {T='='}.
-sym(T) --> "+", {T='+'}.
-sym(T) --> "-", {T='-'}.
-sym(T) --> "*", {T='*'}.
-sym(T) --> "/", {T='/'}.
-sym(T) --> "%", {T='%'}.
-sym(T) --> "!", {T='!'}.
-sym(T) --> "?", {T='?'}.
-sym(T) --> ":", {T=':'}.
-sym(T) --> ";", {T=';'}.
-sym(T) --> ".", {T='.'}.
+sym('=?=') --> "=?=".
+sym('=!=') --> "=!=".
+sym('||') --> "||".
+sym('&&') --> "&&".
+sym('<=') --> "<=".
+sym('>=') --> ">=".
+sym('==') --> "==".
+sym('!=') --> "!=".
+sym('(') --> "(".
+sym(')') --> ")".
+sym('[') --> "[".
+sym(']') --> "]".
+sym('{') --> "{".
+sym('}') --> "}".
+sym(',') --> ",".
+sym('<') --> "<".
+sym('>') --> ">".
+sym('=') --> "=".
+sym('+') --> "+".
+sym('-') --> "-".
+sym('*') --> "*".
+sym('/') --> "/".
+sym('%') --> "%".
+sym('!') --> "!".
+sym('?') --> "?".
+sym(':') --> ":".
+sym(';') --> ";".
+sym('.') --> ".".
