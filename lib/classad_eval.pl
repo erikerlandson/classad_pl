@@ -32,8 +32,8 @@ atomic_expr('[classad]'(_)).
 variable(V) :- atom(V), V \= [], V \= parent, \+atomic_expr(V).
 
 % these may arise from select operator, possibly others
-ev([[undefined|_], _], [[], undefined]).
-ev([[error|_], _], [[], error]).
+ev([[undefined|C], _], [C, undefined]).
+ev([[error|C], _], [C, error]).
 
 % Atomic expressions evaluate as themselves, independent of any context.
 % Attempt to match these first
@@ -60,4 +60,4 @@ ev([C, E], [C, R]) :- is_list(E), maplist(pair(C), E, T), maplist(ev, T, RT), ma
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
 % or perhaps throwing an exception.
-ev([_, _], [[], error]).
+ev([C, _], [C, error]).
