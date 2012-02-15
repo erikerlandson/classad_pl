@@ -8,13 +8,19 @@
 
 :- use_module(classad_parser).
 
-:- op(1, fx, user:as_expr).
+% Used to denote "parse the following into an expression":
+:- op(20, fx, user:as_expr).
 
+% Used to keep track of variable "goal stack", for cyclic expr detection:
 :- dynamic evvg/2.
 
+% Parse string S into expression E, then evaluate:
 eval(as_expr S, C, R) :- parse(S, E), eval(E, C, R), !.
 
+% Evaluate E using context of the given classad:
 eval(E, C, R) :- functor(C, '[classad]', 1), eval(E, [C], R), !.
+
+% Evaluate E where C is given as a 'stack' of contexts:
 eval(E, C, R) :- is_list(C), forall(member(X, C), functor(X, '[classad]', 1)), ev([C,E], [_,R]), !.
 
 % utility for constructing pairs
@@ -44,16 +50,18 @@ promote_to_numeric(false, 0).
 promote_to_numeric(undefined, undefined).
 promote_to_numeric(_, error).
 
-ev_arith(_, undefined, _, undefined).
-ev_arith(_, _, undefined, undefined).
-ev_arith(_, error, _, error).
-ev_arith(_, _, error, error).
-ev_arith('+', X, Y, R) :- R is X + Y.
-ev_arith('-', X, Y, R) :- R is X - Y.
-ev_arith('*', X, Y, R) :- R is X * Y.
-ev_arith('/', X, Y, R) :- integer(X), integer(Y), R is X // Y.
-ev_arith('/', X, Y, R) :- R is X / Y.
-ev_arith(_, _, _, error).
+% This predicate assumes that all arguments have already been type checked/promoted
+% in a way that is appropriate for the given operator:
+ev_strict_binary(_, undefined, _, undefined).
+ev_strict_binary(_, _, undefined, undefined).
+ev_strict_binary(_, error, _, error).
+ev_strict_binary(_, _, error, error).
+ev_strict_binary('+', X, Y, R) :- R is X + Y.
+ev_strict_binary('-', X, Y, R) :- R is X - Y.
+ev_strict_binary('*', X, Y, R) :- R is X * Y.
+ev_strict_binary('/', X, Y, R) :- integer(X), integer(Y), R is X // Y.
+ev_strict_binary('/', X, Y, R) :- R is X / Y.
+ev_strict_binary(_, _, _, error).
 
 % these may arise from select operator, possibly others
 ev([[undefined|C], _], [C, undefined]).
@@ -100,7 +108,7 @@ ev([C, E], [C, R]) :-
     E=..[OP, SL, SR], arithmetic_op(OP), 
     ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
     promote_to_numeric(LR, LN), promote_to_numeric(RR, RN), 
-    ev_arith(OP, LN, RN, R).
+    ev_strict_binary(OP, LN, RN, R).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
