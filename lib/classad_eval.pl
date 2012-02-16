@@ -26,6 +26,13 @@ eval(E, C, R) :- is_list(C), forall(member(X, C), functor(X, '[classad]', 1)), e
 % utility for constructing pairs
 pair(A, B, [A,B]).
 
+% why do I have to write this?
+fmod(_, 0, error).
+fmod(_, 0.0, error).
+fmod(N, D, R) :- D < 0, DA is -D, NA is -N, fmod(NA, DA, T), R is -T, !.
+fmod(N, D, R) :- N < 0, A is -N, fmod(A, D, T), R is D-T, !.
+fmod(N, D, R) :- Q is N/D, F is floor(Q), R is (Q-F)*D, !.
+
 % atomic expressions:
 % I am ordering these so that most commonly expected literals
 % get tested first
@@ -43,6 +50,11 @@ arithmetic_op('+').
 arithmetic_op('-').
 arithmetic_op('*').
 arithmetic_op('/').
+arithmetic_op('%').
+
+unary_op('+').
+unary_op('-').
+unary_op('!').
 
 promote_to_numeric(N, N) :- number(N).
 promote_to_numeric(true, 1).
@@ -70,7 +82,17 @@ ev_strict_binary('/', _, 0, error).
 ev_strict_binary('/', _, 0.0, error).
 ev_strict_binary('/', X, Y, R) :- integer(X), integer(Y), R is X // Y.
 ev_strict_binary('/', X, Y, R) :- R is X / Y.
+ev_strict_binary('%', _, 0, error).
+ev_strict_binary('%', _, 0.0, error).
+ev_strict_binary('%', X, Y, R) :- integer(X), integer(Y), R is X mod Y.
+ev_strict_binary('%', X, Y, R) :- fmod(X, Y, R).
 ev_strict_binary(_, _, _, error).
+
+ev_strict_unary(_, error, error).
+ev_strict_unary(_, undefined, undefined).
+ev_strict_unary('+', X, X) :- number(X).
+ev_strict_unary('-', X, Y) :- number(X), Y is -X.
+ev_strict_unary(_, _, error).
 
 ev_and(error, _, error).
 ev_and(_, error, error).
@@ -136,6 +158,12 @@ ev([C, E], [C, R]) :-
     ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
     promote_to_numeric(LR, LN), promote_to_numeric(RR, RN), 
     ev_strict_binary(OP, LN, RN, R).
+
+ev([C, E], [C, R]) :- 
+    E=..[OP, SE], unary_op(OP), 
+    ev([C, SE], [_, SR]),
+    promote_to_numeric(SR, SN),
+    ev_strict_unary(OP, SN, R).
 
 % && operator
 ev([C, '&&'(LE, RE)], [C, R]) :-

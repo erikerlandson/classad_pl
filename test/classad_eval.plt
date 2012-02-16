@@ -191,6 +191,56 @@ test('divide 4') :-
     eval(as_expr "a", C, R),
     assertion(R == error).
 
+test('mod 1') :-
+    parse("[a = 5 % 3;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 2).
+
+test('mod 2') :-
+    parse("[a = 5 % -3;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == -1).
+
+test('mod 3') :-
+    parse("[a = -5 % 3;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 1).
+
+test('mod 4') :-
+    parse("[a = -5 % -3;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == -2).
+
+test('mod 5') :-
+    parse("[a = 5.0 % 3;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 2.0).
+
+test('mod 6') :-
+    parse("[a = 5 % -3.0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == -1.0).
+
+test('mod 7') :-
+    parse("[a = -5 % 3.0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 1.0).
+
+test('mod 8') :-
+    parse("[a = -5.0 % -3;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == -2.0).
+
+test('mod 9') :-
+    parse("[a = 5 % 0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == error).
+
+test('mod 10') :-
+    parse("[a = 5 % 0.0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == error).
+
 test('&& 1') :-
     parse("[a = true && true;]", C),
     eval(as_expr "a", C, R),
