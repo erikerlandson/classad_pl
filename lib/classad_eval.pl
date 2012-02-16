@@ -146,7 +146,6 @@ ev([[C|P], V], R) :-
         ev([P, V], R)).
 
 % a list evaluates by evaluating each of its elements:
-% match this prior to atom/var below, because '[]' is considered an atom.
 ev([C, E], [C, R]) :- is_list(E), maplist(pair(C), E, T), maplist(ev, T, RT), maplist(nth(2), RT, R).
 
 % select op
