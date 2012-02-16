@@ -231,4 +231,44 @@ test('&& 8') :-
     eval(as_expr "a", C, R),
     assertion(R == false).
 
+test('|| 1') :-
+    parse("[a = false || false;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == false).
+
+test('|| 2') :-
+    parse("[a = true || b;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == true).
+
+test('|| 3') :-
+    parse("[a = 1 || \"z\";]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == true).
+
+test('|| 4') :-
+    parse("[a = 0 || \"z\";]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == error).
+
+test('|| 5') :-
+    parse("[a = \"z\" || true;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == error).
+
+test('|| 6') :-
+    parse("[a = 0.0 || b;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == undefined).
+
+test('|| 7') :-
+    parse("[a = b || 0.0;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == undefined).
+
+test('|| 8') :-
+    parse("[a = b || 1;]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == true).
+
 :- end_tests(classad_eval_ut).

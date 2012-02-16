@@ -81,6 +81,15 @@ ev_and(undefined, _, undefined).
 ev_and(true, true, true).
 ev_and(_, _, error).
 
+ev_or(error, _, error).
+ev_or(_, error, error).
+ev_or(true, _, true).
+ev_or(_, true, true).
+ev_or(_, undefined, undefined).
+ev_or(undefined, _, undefined).
+ev_or(false, false, false).
+ev_or(_, _, error).
+
 % these may arise from select operator, possibly others
 ev([[undefined|P], _], [P, undefined]).
 ev([[C|P], _], [P, error]) :- \+functor(C, '[classad]', 1).
@@ -137,6 +146,16 @@ ev([C, '&&'(LE, RE)], [C, R]) :-
     ; % else
     % otherwise we also eval right subexpr and compute:
     (ev([C, RE], [_,RR]), promote_to_boolean(RR, RB), ev_and(LB, RB, R))).
+
+% || operator
+ev([C, '||'(LE, RE)], [C, R]) :-
+    % evaluate left subexpr:
+    ev([C, LE], [_,LR]), promote_to_boolean(LR, LB),
+    % true or error allows lazy eval:
+    (((LB = true ; LB = error), R = LB)
+    ; % else
+    % otherwise we also eval right subexpr and compute:
+    (ev([C, RE], [_,RR]), promote_to_boolean(RR, RB), ev_or(LB, RB, R))).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
