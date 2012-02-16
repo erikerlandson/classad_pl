@@ -1,1 +1,7 @@
-classad_pl is a prolog implementation of the classad language
+classad_pl is a Prolog implementation of the ClassAd language.
+
+The ClassAd language home page:
+http://research.cs.wisc.edu/condor/classad/
+
+The ClassAd language spec can be found here:
+http://research.cs.wisc.edu/condor/classad/refman/
