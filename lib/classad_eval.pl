@@ -64,7 +64,8 @@ promote_to_numeric(_, error).
 
 promote_to_boolean(true, true).
 promote_to_boolean(false, false).
-promote_to_boolean(N, false) :- (N is 0) ; (N is 0.0).
+promote_to_boolean(0, false).
+promote_to_boolean(0.0, false).
 promote_to_boolean(N, true) :- number(N).
 promote_to_boolean(undefined, undefined).
 promote_to_boolean(_, error).
