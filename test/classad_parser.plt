@@ -10,203 +10,203 @@
 
 test('ident expr') :-
     parse("a", E),
-    assertion(E == 'a').
+    E == 'a'.
 
 test('str expr') :-
     parse("\"a\"", E),
-    assertion(E == '[str]'('a')).
+    E == '[str]'('a').
 
 test('num expr') :-
     parse("42", E),
-    assertion(E == 42).
+    E == 42.
 
 test('func 0') :-
     parse("f()", E),
-    assertion(E == f([])).
+    E == f([]).
 
 test('func 1') :-
     parse("f(a)", E),
-    assertion(E == f(['a'])).
+    E == f(['a']).
 
 test('func 2') :-
     parse("f(a, 1)", E),
-    assertion(E == f(['a', 1])).
+    E == f(['a', 1]).
 
 test('paren') :-
     parse("(a)", E),
-    assertion(E == 'a').
+    E == 'a'.
 
 test('op !') :-
     parse("!true", E),
-    assertion(E == '!'('true')).
+    E == '!'('true').
 
 test('op -') :-
     parse("-1.0", E),
-    assertion(E == '-'(1.0)).
+    E == '-'(1.0).
 
 test('op +') :-
     parse("+1.0", E),
-    assertion(E == '+'(1.0)).
+    E == '+'(1.0).
 
 test('composed unary 1') :-
     parse("--1.0", E),
-    assertion(E == '-'('-'(1.0))).
+    E == '-'('-'(1.0)).
 
 test('composed unary 2') :-
     parse("!+--1.0", E),
-    assertion(E == '!'('+'('-'('-'(1.0))))).
+    E == '!'('+'('-'('-'(1.0)))).
 
 test('arg nesting') :-
     parse("f(g(-1), -(-2))", E),
-    assertion(E == f([g(['-'(1)]), '-'('-'(2))])).
+    E == f([g(['-'(1)]), '-'('-'(2))]).
 
 test('* seq 1') :-
     parse("2 * a", E),
-    assertion(E == '*'(2,a)).
+    E == '*'(2,a).
 
 test('/ seq 1') :-
     parse("2 / a", E),
-    assertion(E == '/'(2,a)).
+    E == '/'(2,a).
 
 test('*/ seq 1') :-
     parse("2 * b / a", E),
-    assertion(E == '/'('*'(2,b), a)).
+    E == '/'('*'(2,b), a).
 
 test('*/ seq 2') :-
     parse("-2 * b / +a", E),
-    assertion(E == '/'('*'('-'(2),b), '+'(a))).
+    E == '/'('*'('-'(2),b), '+'(a)).
 
 test('*/ seq 3') :-
     parse("-2 * f(b) / +a", E),
-    assertion(E == '/'('*'('-'(2),f([b])), '+'(a))).
+    E == '/'('*'('-'(2),f([b])), '+'(a)).
 
 test('+ seq 1') :-
     parse("2+a", E),
-    assertion(E == '+'(2,a)).
+    E == '+'(2,a).
 
 test('- seq 1') :-
     parse("2-a", E),
-    assertion(E == '-'(2,a)).
+    E == '-'(2,a).
 
 test('+- seq 1') :-
     parse("2-a+b", E),
-    assertion(E == '+'('-'(2,a), b)).
+    E == '+'('-'(2,a), b).
 
 test('+- seq 2') :-
     parse("2*a-a/3+5*b", E),
-    assertion(E == '+'('-'('*'(2,a),'/'(a,3)), '*'(5,b))).
+    E == '+'('-'('*'(2,a),'/'(a,3)), '*'(5,b)).
 
 test('+- seq 3') :-
     parse("2*a-a/-3+-5*b", E),
-    assertion(E == '+'('-'('*'(2,a),'/'(a,'-'(3))), '*'('-'(5),b))).
+    E == '+'('-'('*'(2,a),'/'(a,'-'(3))), '*'('-'(5),b)).
 
 test('comp ==') :-
     parse("a   ==b", E),
-    assertion(E == '=='(a,b)).
+    E == '=='(a,b).
 
 test('comp =?=') :-
     parse("name =?= \"fred\"", E),
-    assertion(E == '=?='(name, '[str]'(fred))).
+    E == '=?='(name, '[str]'(fred)).
 
 test('comp <') :-
     parse("-2*a   <   b + -4 - c", E),
-    assertion(E == '<'('*'('-'(2),a), '-'('+'(b, '-'(4)), c))).
+    E == '<'('*'('-'(2),a), '-'('+'(b, '-'(4)), c)).
 
 test('and 1') :-
     parse("true && false", E),
-    assertion(E == '&&'(true, false)).
+    E == '&&'(true, false).
 
 test('and 2') :-
     parse("true && false && b", E),
-    assertion(E == '&&'('&&'(true, false), b)).
+    E == '&&'('&&'(true, false), b).
 
 test('or 1') :-
     parse("true || false", E),
-    assertion(E == '||'(true, false)).
+    E == '||'(true, false).
 
 test('or 2') :-
     parse("true || false || b", E),
-    assertion(E == '||'('||'(true, false), b)).
+    E == '||'('||'(true, false), b).
 
 test('or and 1') :-
     parse("2 < 3  &&  3 > 2   ||   1+2 < 1+3  &&  2+3 < 2*3", E),
-    assertion(E == '||'('&&'('<'(2,3), '>'(3, 2)), '&&'('<'('+'(1,2), '+'(1,3)),'<'('+'(2,3), '*'(2,3))))).
+    E == '||'('&&'('<'(2,3), '>'(3, 2)), '&&'('<'('+'(1,2), '+'(1,3)),'<'('+'(2,3), '*'(2,3)))).
 
 test('index 1') :-
     parse("a[0]", E),
-    assertion(E == '[]'(a, 0)).
+    E == '[]'(a, 0).
 
 test('index 2') :-
     parse("a[0][1]", E),
-    assertion(E == '[]'('[]'(a, 0), 1)).
+    E == '[]'('[]'(a, 0), 1).
 
 test('select 1') :-
     parse("a.b", E),
-    assertion(E == '[sel]'(a,b)).
+    E == '[sel]'(a,b).
 
 test('select 2') :-
     parse("a.b.c", E),
-    assertion(E == '[sel]'('[sel]'(a,b), c)).
+    E == '[sel]'('[sel]'(a,b), c).
 
 test('select 3') :-
     parse("parent.parent.c", E),
-    assertion(E == '[sel]'('[sel]'(parent,parent), c)).
+    E == '[sel]'('[sel]'(parent,parent), c).
 
 test('index and select 1') :-
     parse("a.b.c[j+1]", E),
-    assertion(E == '[]'('[sel]'('[sel]'(a,b), c), '+'(j,1))).
+    E == '[]'('[sel]'('[sel]'(a,b), c), '+'(j,1)).
 
 test('list 0') :-
     parse("{}", E),
-    assertion(E == []).
+    E == [].
 
 test('list 1') :-
     parse("{1}", E),
-    assertion(E == [1]).
+    E == [1].
 
 test('list 2') :-
     parse("  {1  ,  1 + e  }  ", E),
-    assertion(E == [1, '+'(1,e)]).
+    E == [1, '+'(1,e)].
 
 test('classad 0') :-
     parse("[]", E),
     E = '[classad]'(M), assoc_to_list(M, L),
-    assertion(L == []).
+    L == [].
 
 test('classad 1') :-
     parse("[x=0;]", E),
     E = '[classad]'(M), assoc_to_list(M, L),
-    assertion(L == [x-0]).
+    L == [x-0].
 
 test('classad 2') :-
     parse("[x=0; y=2*x;]", E),
     E = '[classad]'(M), assoc_to_list(M, L),
-    assertion(L == [x-0, y-'*'(2,x)]).
+    L == [x-0, y-'*'(2,x)].
 
 test('classad 3') :-
     parse("[x=0; y=2*x; z=[a=0;];]", E),
     E = '[classad]'(M), assoc_to_list(M, L),
     [M1, M2, z-'[classad]'(MM)] = L, assoc_to_list(MM, LL),
-    assertion(M1 == x-0),
-    assertion(M2 == y-'*'(2,x)),
-    assertion(LL == [a-0]).
+    M1 == x-0,
+    M2 == y-'*'(2,x),
+    LL == [a-0].
 
 test('classad 4') :-
     parse("[x=0]", E),
     E = '[classad]'(M), assoc_to_list(M, L),
-    assertion(L == [x-0]).
+    L == [x-0].
 
 test('classad 5') :-
     parse("[x=0; y=2*x]", E),
     E = '[classad]'(M), assoc_to_list(M, L),
-    assertion(L == [x-0, y-'*'(2,x)]).
+    L == [x-0, y-'*'(2,x)].
 
 test('conditional 1') :-
     parse("(a <= 0) ? 0 : 2*a", E),
-    assertion(E == '?:'('<='(a, 0), 0, '*'(2,a))). 
+    E == '?:'('<='(a, 0), 0, '*'(2,a)). 
 
 test('conditional 2') :-
     parse("a || b  ?  c || d ? 0 : 1   :  e || f", E),
-    assertion(E == '?:'('||'(a,b), '?:'('||'(c,d), 0, 1), '||'(e,f))). 
+    E == '?:'('||'(a,b), '?:'('||'(c,d), 0, 1), '||'(e,f)). 
 
 :- end_tests(classad_parser_ut).

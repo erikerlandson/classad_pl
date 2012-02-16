@@ -9,78 +9,78 @@
 
 test('empty string') :-
     lex("", T),
-    assertion(T == []).
+    T == [].
 
 test('whitespace only') :-
     lex(" \t ", T),
-    assertion(T == []).
+    T == [].
 
 test('string token') :-
     lex("\"a string\"", T),
-    assertion(T == ['[str]'('a string')]).
+    T == ['[str]'('a string')].
 
 test('integer') :-
     lex("42", T),
-    assertion(T == [42]).
+    T == [42].
 
 test('floating point') :-
     lex("3.14", T),
-    assertion(T == [3.14]).
+    T == [3.14].
 
 test('floating point') :-
     lex("3.", T),
-    assertion(T == [3.0]).
+    T == [3.0].
 
 test('exp notation') :-
     lex("31.4e-1", T),
-    assertion(T == [3.14]).
+    T == [3.14].
 
 test('exp notation 2') :-
     lex("1e1", T),
-    assertion(T == [10.0]).
+    T == [10.0].
 
 test('exp notation 3') :-
     lex("1.e+1", T),
-    assertion(T == [10.0]).
+    T == [10.0].
 
 test('variable') :-
     lex("a", T),
-    assertion(T == ['a']).
+    T == ['a'].
 
 test('variable 2') :-
     lex("a2", T),
-    assertion(T == ['a2']).
+    T == ['a2'].
 
 test('variable 3') :-
     lex("a2 b4", T),
-    assertion(T == ['a2', 'b4']).
+    T == ['a2', 'b4'].
 
 test('variables with whitespace') :-
     lex(" a2 b4 ", T),
-    assertion(T == ['a2', 'b4']).
+    T == ['a2', 'b4'].
 
 test('symbol =?=') :-
     lex("=?=", T),
-    assertion(T == ['=?=']).
+    T == ['=?='].
 
 test('symbol ==') :-
     lex("==", T),
-    assertion(T == ['==']).
+    T == ['=='].
 
 test('all symbols') :-
     lex("=?==!=||&&<=>===!=()[]{},<>+-*/!:=?;.", T),
-    assertion(T == ['=?=','=!=','||','&&','<=','>=','==','!=','(',')','[',']','{','}',',','<','>','+','-','*','/','!',':','=','?',';','.']).
+    T == ['=?=','=!=','||','&&','<=','>=','==','!=','(',')','[',']','{','}',',','<','>','+','-','*','/','!',':','=','?',';','.'].
 
 test('expression 1') :-
     lex("4*a+b-c/4e1*e", T),
-    assertion(T == [4, '*', 'a', '+', 'b', '-', 'c', '/', 40.0, '*', 'e']).
+    T == [4, '*', 'a', '+', 'b', '-', 'c', '/', 40.0, '*', 'e'].
 
 test('expression 2') :-
     lex("ifthenelse(name =!= \"fred\", name, \"wilma\")", T),
-    assertion(T == ['ifthenelse', '(', 'name', '=!=', '[str]'('fred'), ',', 'name', ',', '[str]'('wilma'), ')']).
+    T == ['ifthenelse', '(', 'name', '=!=', '[str]'('fred'), ',', 'name', ',', '[str]'('wilma'), ')'].
 
 test('identifiers') :-
     lex("Scope._CamelCase_Ident", T),
-    assertion(T == ['scope', '.', '_camelcase_ident']).
+    T == ['scope', '.', '_camelcase_ident'].
 
 :- end_tests(classad_lexer_ut).
