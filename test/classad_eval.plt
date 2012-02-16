@@ -321,4 +321,49 @@ test('|| 8') :-
     eval(as_expr "a", C, R),
     assertion(R == true).
 
+test('promotion 1') :-
+    parse("[a = true + true]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 2).
+
+test('promotion 2') :-
+    parse("[a = 4.0 * true]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 4.0).
+
+test('promotion 3') :-
+    parse("[a = 4.0 * false]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == 0.0).
+
+test('! op 1') :-
+    parse("[a = !true]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == false).
+
+test('! op 2') :-
+    parse("[a = !false]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == true).
+
+test('! op 3') :-
+    parse("[a = !0]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == true).
+
+test('! op 4') :-
+    parse("[a = !1]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == false).
+
+test('! op 5') :-
+    parse("[a = !\"z\"]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == error).
+
+test('! op 6') :-
+    parse("[a = !b]", C),
+    eval(as_expr "a", C, R),
+    assertion(R == undefined).
+
 :- end_tests(classad_eval_ut).

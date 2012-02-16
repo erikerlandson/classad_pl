@@ -52,9 +52,8 @@ arithmetic_op('*').
 arithmetic_op('/').
 arithmetic_op('%').
 
-unary_op('+').
-unary_op('-').
-unary_op('!').
+sign_op('+').
+sign_op('-').
 
 promote_to_numeric(N, N) :- number(N).
 promote_to_numeric(true, 1).
@@ -163,7 +162,7 @@ ev([C, E], [C, R]) :-
     ev_strict_binary(OP, LN, RN, R).
 
 ev([C, E], [C, R]) :- 
-    E=..[OP, SE], unary_op(OP), 
+    E=..[OP, SE], sign_op(OP), 
     ev([C, SE], [_, SR]),
     promote_to_numeric(SR, SN),
     ev_strict_unary(OP, SN, R).
