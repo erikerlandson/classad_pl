@@ -93,6 +93,8 @@ ev_strict_unary(_, error, error).
 ev_strict_unary(_, undefined, undefined).
 ev_strict_unary('+', X, X) :- number(X).
 ev_strict_unary('-', X, Y) :- number(X), Y is -X.
+ev_strict_unary('!', true, false).
+ev_strict_unary('!', false, true).
 ev_strict_unary(_, _, error).
 
 ev_and(error, _, error).
@@ -113,7 +115,8 @@ ev_or(undefined, _, undefined).
 ev_or(false, false, false).
 ev_or(_, _, error).
 
-% these may arise from select operator, possibly others
+% I wrote these to simplify the logic of the select operator '[sel]'/'.' but
+% they also probably provide some useful sanity checking
 ev([[undefined|P], _], [P, undefined]).
 ev([[C|P], _], [P, error]) :- \+functor(C, '[classad]', 1).
 
@@ -184,6 +187,12 @@ ev([C, '||'(LE, RE)], [C, R]) :-
     ; % else
     % otherwise we also eval right subexpr and compute:
     (ev([C, RE], [_,RR]), promote_to_boolean(RR, RB), ev_or(LB, RB, R))).
+
+% ! operator
+ev([C, '!'(SE)], [C, R]) :-
+    ev([C, SE], [_, SR]),
+    promote_to_boolean(SR, SB),
+    ev_strict_unary('!', SB, R).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
