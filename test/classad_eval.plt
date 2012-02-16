@@ -366,4 +366,34 @@ test('! op 6') :-
     eval(as_expr "a", C, R),
     R == undefined.
 
+test('?: op 1') :-
+    parse("[a = (true) ? 2.0 : true]", C),
+    eval(as_expr "a", C, R),
+    R == 2.0.
+
+test('?: op 2') :-
+    parse("[a = (false) ? 2.0 : true]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('?: op 3') :-
+    parse("[a = (b) ? 2.0 : true]", C),
+    eval(as_expr "a", C, R),
+    R == undefined.
+
+test('?: op 4') :-
+    parse("[a = (\"z\") ? 2.0 : true]", C),
+    eval(as_expr "a", C, R),
+    R == error.
+
+test('?: op 5') :-
+    parse("[r = [a = ((true) ? parent : q).z; q = [z=42]]; z=69]", C),
+    eval(as_expr "r.a", C, R),
+    R == 69.
+
+test('?: op 6') :-
+    parse("[r = [a = ((false) ? parent : q).z; q = [z=42]]; z=69]", C),
+    eval(as_expr "r.a", C, R),
+    R == 42.
+
 :- end_tests(classad_eval_ut).

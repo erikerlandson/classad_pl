@@ -193,6 +193,17 @@ ev([C, '!'(SE)], [C, R]) :-
     promote_to_boolean(SR, SB),
     ev_strict_unary('!', SB, R).
 
+% '?:' conditional operator
+ev([C, '?:'(TE, LE, RE)], [RC, R]) :-
+    ev([C, TE], [_, TR]), promote_to_boolean(TR, TB),
+    ((TB == undefined, RC = C, R = undefined)
+    ;
+    (TB == true, ev([C, LE], [RC, R]))
+    ;
+    (TB == false, ev([C, RE], [RC, R]))
+    ;
+    (RC = C, R = error)).
+
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
 % or perhaps throwing an exception.
