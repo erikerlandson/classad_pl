@@ -55,6 +55,13 @@ arithmetic_op('%').
 sign_op('+').
 sign_op('-').
 
+comparison_op('==').
+comparison_op('!=').
+comparison_op('<').
+comparison_op('>').
+comparison_op('<=').
+comparison_op('>=').
+
 promote_to_numeric(N, N) :- number(N).
 promote_to_numeric(true, 1).
 promote_to_numeric(false, 0).
@@ -68,6 +75,13 @@ promote_to_boolean(0.0, false).
 promote_to_boolean(N, true) :- number(N).
 promote_to_boolean(undefined, undefined).
 promote_to_boolean(_, error).
+
+promote_for_comparison(N, N) :- number(N).
+promote_for_comparison('[str]'(X), '[str]'(X)).
+promote_for_comparison(true, 1).
+promote_for_comparison(false, 0).
+promote_for_comparison(undefined, undefined).
+promote_for_comparison(_, error).
 
 % This predicate assumes that all arguments have already been type checked/promoted
 % in a way that is appropriate for the given operator:
@@ -86,6 +100,18 @@ ev_strict_binary('%', _, 0, error).
 ev_strict_binary('%', _, 0.0, error).
 ev_strict_binary('%', X, Y, R) :- integer(X), integer(Y), R is X mod Y.
 ev_strict_binary('%', X, Y, R) :- fmod(X, Y, R).
+ev_strict_binary('==', '[str]'(X), '[str]'(Y), R) :- ((X==Y, R = true); R = false).
+ev_strict_binary('==', X, Y, R) :- number(X), number(Y), ((X=:=Y, R = true); R = false).
+ev_strict_binary('!=', '[str]'(X), '[str]'(Y), R) :- ((X\==Y, R = true); R = false).
+ev_strict_binary('!=', X, Y, R) :- number(X), number(Y), ((X=\=Y, R = true); R = false).
+ev_strict_binary('<', '[str]'(X), '[str]'(Y), R) :- ((X @< Y, R = true); R = false).
+ev_strict_binary('<', X, Y, R) :- number(X), number(Y), ((X < Y, R = true); R = false).
+ev_strict_binary('>', '[str]'(X), '[str]'(Y), R) :- ((X @> Y, R = true); R = false).
+ev_strict_binary('>', X, Y, R) :- number(X), number(Y), ((X > Y, R = true); R = false).
+ev_strict_binary('<=', '[str]'(X), '[str]'(Y), R) :- ((X @=< Y, R = true); R = false).
+ev_strict_binary('<=', X, Y, R) :- number(X), number(Y), ((X =< Y, R = true); R = false).
+ev_strict_binary('>=', '[str]'(X), '[str]'(Y), R) :- ((X @>= Y, R = true); R = false).
+ev_strict_binary('>=', X, Y, R) :- number(X), number(Y), ((X >= Y, R = true); R = false).
 ev_strict_binary(_, _, _, error).
 
 ev_strict_unary(_, error, error).
@@ -203,6 +229,12 @@ ev([C, '?:'(TE, LE, RE)], [RC, R]) :-
     (TB == false, ev([C, RE], [RC, R]))
     ;
     (RC = C, R = error)).
+
+ev([C, E], [C, R]) :- 
+    E=..[OP, SL, SR], comparison_op(OP), 
+    ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
+    promote_for_comparison(LR, LC), promote_for_comparison(RR, RC), 
+    ev_strict_binary(OP, LC, RC, R).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,

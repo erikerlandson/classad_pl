@@ -396,4 +396,165 @@ test('?: op 6') :-
     eval(as_expr "r.a", C, R),
     R == 42.
 
+test('op== 1') :-
+    parse("[a = 7 == 7]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op== 2') :-
+    parse("[a = 6 == 7]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op== 3') :-
+    parse("[a = 7.0 == 7]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op== 4') :-
+    parse("[a = \"z\" == \"z\"]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op== 5') :-
+    parse("[a = \"a\" == \"z\"]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op== 6') :-
+    parse("[a = \"z\" == 1]", C),
+    eval(as_expr "a", C, R),
+    R == error.
+
+test('op== 7') :-
+    parse("[a = \"z\" == \"z\"]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op== 8') :-
+    parse("[a = \"z\" == b]", C),
+    eval(as_expr "a", C, R),
+    R == undefined.
+
+test('op!= 1') :-
+    parse("[a =  1 != 0]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op!= 2') :-
+    parse("[a =  1 != 1.0]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op!= 3') :-
+    parse("[a =  \"a\" != \"b\"]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op!= 4') :-
+    parse("[a =  \"a\" != \"a\"]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op< 1') :-
+    parse("[a =  1 < 2]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op< 2') :-
+    parse("[a =  1 < 1.0]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op< 3') :-
+    parse("[a =  \"a\" < \"b\"]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op< 4') :-
+    parse("[a =  \"a\" < \"a\"]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op> 1') :-
+    parse("[a =  1 > 0]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op> 2') :-
+    parse("[a =  1 > 1.0]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op> 3') :-
+    parse("[a =  \"b\" > \"a\"]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op> 4') :-
+    parse("[a =  \"a\" > \"a\"]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op<= 1') :-
+    parse("[a =  1 <= 2]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op<= 2') :-
+    parse("[a =  1 <= 1.0]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op<= 3') :-
+    parse("[a =  2 <= 1.0]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op<= 4') :-
+    parse("[a =  \"a\" <= \"b\"]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op<= 5') :-
+    parse("[a =  \"a\" <= \"a\"]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op<= 6') :-
+    parse("[a =  \"b\" <= \"a\"]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op>= 1') :-
+    parse("[a =  1 >= 2]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op>= 2') :-
+    parse("[a =  1 >= 1.0]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op>= 3') :-
+    parse("[a =  2 >= 1.0]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op>= 4') :-
+    parse("[a =  \"a\" >= \"b\"]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op>= 5') :-
+    parse("[a =  \"a\" >= \"a\"]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op>= 6') :-
+    parse("[a =  \"b\" >= \"a\"]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+
 :- end_tests(classad_eval_ut).
