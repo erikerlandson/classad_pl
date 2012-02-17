@@ -556,5 +556,35 @@ test('op>= 6') :-
     eval(as_expr "a", C, R),
     R == true.
 
+test('op=?= 1') :-
+    parse("[a = 1 =?= 1]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op=?= 2') :-
+    parse("[a = 1 =?= b]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op=?= 3') :-
+    parse("[a = 1 =?= 2]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op=!= 1') :-
+    parse("[a = 1 =!= 1]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op=!= 2') :-
+    parse("[a = 1 =!= b]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op=!= 3') :-
+    parse("[a = 1 =!= 2]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
 
 :- end_tests(classad_eval_ut).

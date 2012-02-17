@@ -62,6 +62,9 @@ comparison_op('>').
 comparison_op('<=').
 comparison_op('>=').
 
+relaxed_comp_op('=?=').
+relaxed_comp_op('=!=').
+
 promote_to_numeric(N, N) :- number(N).
 promote_to_numeric(true, 1).
 promote_to_numeric(false, 0).
@@ -82,6 +85,15 @@ promote_for_comparison(true, 1).
 promote_for_comparison(false, 0).
 promote_for_comparison(undefined, undefined).
 promote_for_comparison(_, error).
+
+% relaxed comparisons return false if either argument is undefined (and not error).
+ev_relaxed_comp(_, error, _, error).
+ev_relaxed_comp(_, _, error, error).
+ev_relaxed_comp(_, undefined, _, false).
+ev_relaxed_comp(_, _, undefined, false).
+ev_relaxed_comp('=?=', X, Y, R) :- ev_strict_binary('==', X, Y, R).
+ev_relaxed_comp('=!=', X, Y, R) :- ev_strict_binary('!=', X, Y, R).
+ev_relaxed_comp(_, _, _, error).
 
 % This predicate assumes that all arguments have already been type checked/promoted
 % in a way that is appropriate for the given operator:
@@ -230,11 +242,19 @@ ev([C, '?:'(TE, LE, RE)], [RC, R]) :-
     ;
     (RC = C, R = error)).
 
+% standard comparison operators
 ev([C, E], [C, R]) :- 
     E=..[OP, SL, SR], comparison_op(OP), 
     ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
     promote_for_comparison(LR, LC), promote_for_comparison(RR, RC), 
     ev_strict_binary(OP, LC, RC, R).
+
+% relaxed comparison operators
+ev([C, E], [C, R]) :- 
+    E=..[OP, SL, SR], relaxed_comp_op(OP), 
+    ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
+    promote_for_comparison(LR, LC), promote_for_comparison(RR, RC), 
+    ev_relaxed_comp(OP, LC, RC, R).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
