@@ -1,0 +1,5 @@
+#!/bin/env sh
+
+# invoke yap with prolog script to run unit tests.  pass along any command line args.
+# assumes yap is in your path
+yap -L test_classads.pl -- $@
