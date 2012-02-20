@@ -586,5 +586,79 @@ test('op=!= 3') :-
     eval(as_expr "a", C, R),
     R == true.
 
+test('op[] 1') :-
+    parse("[a = {1}[0]]", C),
+    eval(as_expr "a", C, R),
+    R == 1.
+
+test('op[] 2') :-
+    parse("[a = [z=42][\"z\"]; z=69]", C),
+    eval(as_expr "a", C, R),
+    R == 42.
+
+test('op[] 3') :-
+    parse("[a = {1}[3]]", C),
+    eval(as_expr "a", C, R),
+    R == error.
+
+test('op[] 4') :-
+    parse("[a = {[z=42]}[\"z\"]; z=69]", C),
+    eval(as_expr "a", C, R),
+    R == [42].
+
+test('op[] 5') :-
+    parse("[a = {}[\"z\"]; z=69]", C),
+    eval(as_expr "a", C, R),
+    R == [].
+
+test('op[] 6') :-
+    parse("[a = {1}[\"z\"]]", C),
+    eval(as_expr "a", C, R),
+    R == [error].
+
+test('op[] 7') :-
+    parse("[a = {[x=1]}[\"z\"]]", C),
+    eval(as_expr "a", C, R),
+    R == [undefined].
+
+test('op[] 8') :-
+    parse("[a = {}[0]]", C),
+    eval(as_expr "a", C, R),
+    R == error.
+
+test('op[] 9') :-
+    parse("[a = {0}[-1]]", C),
+    eval(as_expr "a", C, R),
+    R == error.
+
+test('op[] 10') :-
+    parse("[a = b[0]]", C),
+    eval(as_expr "a", C, R),
+    R == undefined.
+
+test('op[] 11') :-
+    parse("[a = {1}[b]]", C),
+    eval(as_expr "a", C, R),
+    R == undefined.
+
+test('op[] 12') :-
+    parse("[a = {{3},{4}}[1][0]]", C),
+    eval(as_expr "a", C, R),
+    R == 4.
+
+test('op[] 13') :-
+    parse("[a = [b=[c=55];c=44]; c=33; d=a[\"b\"][\"c\"]]", C),
+    eval(as_expr "d", C, R),
+    R == 55.
+
+test('op[] 14') :-
+    parse("[a = [b=[c=parent.c];c=44]; c=33; d=a[\"b\"][\"c\"]]", C),
+    eval(as_expr "d", C, R),
+    R == 44.
+
+test('op[] 15') :-
+    parse("[a = [b=[c=parent.c];c=44]; c=33; d=a[\"parent\"][\"c\"]]", C),
+    eval(as_expr "d", C, R),
+    R == 33.
 
 :- end_tests(classad_eval_ut).

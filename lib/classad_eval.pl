@@ -23,6 +23,9 @@ eval(E, C, R) :- functor(C, '[classad]', 1), eval(E, [C], R), !.
 % Evaluate E where C is given as a 'stack' of contexts:
 eval(E, C, R) :- is_list(C), forall(member(X, C), functor(X, '[classad]', 1)), ev([C,E], [_,R]), !.
 
+% other definitions may appear between declarations for ev
+:- discontiguous(ev/2).
+
 % utility for constructing pairs
 pair(A, B, [A,B]).
 
@@ -255,6 +258,20 @@ ev([C, E], [C, R]) :-
     ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
     promote_for_comparison(LR, LC), promote_for_comparison(RR, RC), 
     ev_relaxed_comp(OP, LC, RC, R).
+
+% indexing [] operator
+ev([C, '[]'(BE, IE)], [RC, R]) :-
+    ev([C, BE], [BC, BR]), ev([C, IE], [_, IR]),
+    ev_idxop(BC, BR, IR, RC, R).
+ev_idxop(RC, error, _, RC, error).
+ev_idxop(RC, _, error, RC, error).
+ev_idxop(RC, undefined, _, RC, undefined).
+ev_idxop(RC, _, undefined, RC, undefined).
+ev_idxop(BC, '[classad]'(M), '[str]'(V), RC, R) :- ev([BC, '[sel]'('[classad]'(M), V)], [RC, R]). 
+ev_idxop(RC, [H|T], I, RC, R) :- integer(I), I>=0, nth0(I, [H|T], R).
+ev_idxop(RC, L, '[str]'(S), RC, R) :- is_list(L), maplist(ev_idxop_pair(RC, '[str]'(S)), L, T), maplist(ev, T, RT), maplist(nth(2), RT, R).
+ev_idxop(RC, _, _, RC, error).
+ev_idxop_pair(C, I, B, [C, '[]'(B, I)]).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
