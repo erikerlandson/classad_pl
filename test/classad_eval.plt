@@ -661,4 +661,19 @@ test('op[] 15') :-
     eval(as_expr "d", C, R),
     R == 33.
 
+test('op[] 16') :-
+    parse("[a = {0,[],[z=77],[z=\"zz\"]}[\"z\"]]", C),
+    eval(as_expr "a", C, R),
+    R == [error, undefined, 77, '[str]'(zz)].
+
+test('op[] 17') :-
+    parse("[a = {0,[],[z=77],[z=\"zz\"]}[\"z\"][2]]", C),
+    eval(as_expr "a", C, R),
+    R == 77.
+
+test('op[] 18') :-
+    parse("[a = {66, 88, 77}; b = [z=1]; c=a[b[\"z\"]]]", C),
+    eval(as_expr "c", C, R),
+    R == 88.
+
 :- end_tests(classad_eval_ut).
