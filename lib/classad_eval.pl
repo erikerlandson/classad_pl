@@ -2,14 +2,18 @@
           [eval/3            % eval(+Expr, +Context, -Result)
           ]).
 
+% yap specific: accesses swi date/time manipulation predicates
+:- expects_dialect(swi).
+
+% standard libs:
 :- use_module(library(lists)).
 :- use_module(library(assoc)).
 :- use_module(library(apply_macros)).
+:- use_module(library(date)).
 
+% classad libs:
 :- use_module(classad_parser).
 
-% yap specific: accesses swi date/time manipulation predicates
-:- expects_dialect(swi).
 
 % Used to denote "parse the following into an expression":
 :- op(20, fx, user:as_expr).
@@ -48,8 +52,10 @@ atomic_expr('[str]'(_)).
 atomic_expr(true).
 atomic_expr(false).
 atomic_expr(undefined).
-atomic_expr(error).
+atomic_expr('[abstime]'(_)).
+atomic_expr('[reltime]'(_)).
 atomic_expr('[classad]'(_)).
+atomic_expr(error).
 
 variable(V) :- atom(V), V \= [], V \= parent, \+atomic_expr(V).
 
@@ -299,12 +305,20 @@ evfc([C, FN, AL], [RC, R]) :- evf([C, FN, AL], [RC, R]).
 
 % define functions with strict argument semantics:
 strict_function(time).
+strict_function(abstime).
 
 % these define legal argument formats for given functions
 arg_format(time, []). 
+arg_format(abstime, []).
+arg_format(abstime, [_]).
 
 % function time()
 evf([C, time, []], [C, R]) :- get_time(T), R is integer(T).
+
+% function abstime() 
+evf([C, abstime, []], [C, '[abstime]'(T)]) :- get_time(T).
+evf([C, abstime, [T]], [C, '[abstime]'(T)]) :- number(T).
+evf([C, abstime, ['[str]'(TS)]], [C, '[abstime]'(T)]) :- parse_time(TS, T).
 
 
 % This is a catchall - has to be declared last.

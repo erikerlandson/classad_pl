@@ -697,4 +697,41 @@ test('func time 3') :-
     eval(as_expr "a", C, R),
     R == error.
 
+test('func abstime 1') :-
+    get_time(T0),
+    parse("[a = abstime()]", C),
+    eval(as_expr "a", C, R),
+    get_time(T1),
+    R = '[abstime]'(T),
+    number(T),
+    T >= T0,
+    T1 >= T.
+
+test('func abstime 2') :-
+    parse("[a = abstime(1329798052)]", C),
+    eval(as_expr "a", C, R),
+    R = '[abstime]'(T),
+    T =:= 1329798052.
+
+test('func abstime 3') :-
+    parse("[a = abstime(\"2012-02-20\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[abstime]'(T),
+    T =:= 1329696000.
+
+test('func abstime 4') :-
+    parse("[a = abstime(b)]", C),
+    eval(as_expr "a", C, R),
+    R = undefined.
+
+test('func abstime 5') :-
+    parse("[a = abstime([])]", C),
+    eval(as_expr "a", C, R),
+    R = error.
+
+test('func abstime 6') :-
+    parse("[a = abstime({}[1])]", C),
+    eval(as_expr "a", C, R),
+    R = error.
+
 :- end_tests(classad_eval_ut).
