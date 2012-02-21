@@ -319,7 +319,7 @@ evf([C, time, []], [C, R]) :- get_time(T), R is integer(T).
 
 % function abstime() 
 evf([C, abstime, []], [C, '[abstime]'(T,Z)]) :- get_time(T), local_tzo(Z).
-evf([C, abstime, [T,Z]], [C, '[abstime]'(T,WZ)]) :- number(T), number(Z), WZ is -Z.
+evf([C, abstime, [T,Z]], [C, '[abstime]'(T,WZ)]) :- number(T), integer(Z), WZ is -Z.
 evf([C, abstime, [T]], [C, '[abstime]'(T,Z)]) :- number(T), local_tzo(Z).
 evf([C, abstime, ['[str]'(TS)]], [C, '[abstime]'(T,Z)]) :- parse_time(TS, T), local_tzo(Z).
 local_tzo(Z) :- stamp_date_time(0, DT, local), date_time_value(utc_offset, DT, Z).
