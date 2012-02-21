@@ -7,6 +7,8 @@
 :- use_module('../lib/classad_parser.pl').
 :- use_module('../lib/classad_eval.pl').
 
+:- expects_dialect(swi).
+
 :- begin_tests(classad_eval_ut).
 
 test('error 1') :-
@@ -675,5 +677,24 @@ test('op[] 18') :-
     parse("[a = {66, 88, 77}; b = [z=1]; c=a[b[\"z\"]]]", C),
     eval(as_expr "c", C, R),
     R == 88.
+
+test('func time 1') :-
+    get_time(T0),
+    parse("[a = time()]", C),
+    eval(as_expr "a", C, R),
+    get_time(T1),
+    integer(R),
+    R >= T0,
+    T1 >= R.
+
+test('func time 2') :-
+    parse("[a = time(0)]", C),
+    eval(as_expr "a", C, R),
+    R == error.
+
+test('func time 3') :-
+    parse("[a = time(b)]", C),
+    eval(as_expr "a", C, R),
+    R == error.
 
 :- end_tests(classad_eval_ut).

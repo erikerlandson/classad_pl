@@ -8,6 +8,9 @@
 
 :- use_module(classad_parser).
 
+% yap specific: accesses swi date/time manipulation predicates
+:- expects_dialect(swi).
+
 % Used to denote "parse the following into an expression":
 :- op(20, fx, user:as_expr).
 
@@ -25,6 +28,7 @@ eval(E, C, R) :- is_list(C), forall(member(X, C), functor(X, '[classad]', 1)), e
 
 % other definitions may appear between declarations for ev
 :- discontiguous(ev/2).
+:- discontiguous(evf/2).
 
 % utility for constructing pairs
 pair(A, B, [A,B]).
@@ -273,7 +277,38 @@ ev_idxop(RC, L, '[str]'(S), RC, R) :- is_list(L), maplist(ev_idxop_pair(RC, '[st
 ev_idxop(RC, _, _, RC, error).
 ev_idxop_pair(C, I, B, [C, '[]'(B, I)]).
 
+
+% any pattern not matched above is assumed to be a function call f([a1[,a2...]])
+ev([C, FE], [RC, R]) :-
+    % get the function name, and evaluate argument expression list
+    FE=..[FN, AE], ev([C, AE], [_, AR]),
+    % now invoke check for strict/non strict function call:
+    evfc([C, FN, AR], [RC, R]).
+
+% strict functions: propagate error/undefined in the function arg list
+evfc([C, FN, AL], [RC, R]) :- 
+    strict_function(FN),
+    ((((\+arg_format(FN, AL)) ; member(error, AL)), RC = C, R = error)
+    ;
+    (member(undefined, AL), RC = C, R = undefined)
+    ;
+    evf([C, FN, AL], [RC, R])).
+
+% non-strict functions are fall-thru
+evfc([C, FN, AL], [RC, R]) :- evf([C, FN, AL], [RC, R]).
+
+% define functions with strict argument semantics:
+strict_function(time).
+
+% these define legal argument formats for given functions
+arg_format(time, []). 
+
+% function time()
+evf([C, time, []], [C, R]) :- get_time(T), R is integer(T).
+
+
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
 % or perhaps throwing an exception.
 ev([C, _], [C, error]).
+evf([C, _, _], [C, error]).
