@@ -182,8 +182,9 @@ ev([[_C|[CP|CR]], parent], [CR, CP]).
 
 % evaluating a variable:
 ev([[], V], [[],undefined]) :- variable(V).
-ev([[C|P], V], R) :- 
-    variable(V), '[classad]'(M)=C,
+ev([[C|P], VC], R) :- 
+    variable(VC), '[classad]'(M)=C,
+    downcase_atom(VC, V),
     % check for V in the current context:
     (get_assoc(V, M, E),
         % we found V in the current context. check for cyclic dependency:

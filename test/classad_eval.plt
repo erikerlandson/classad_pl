@@ -73,6 +73,15 @@ test('undefined var 1') :-
     eval(a, C, R),
     R == undefined.
 
+test('vars case insensitive 1') :-
+    parse("[Abc = 42]", C),
+    eval('abc', C, R1),
+    R1 == 42,
+    eval('Abc', C, R2),
+    R2 == 42,
+    eval('aBc', C, R3),
+    R3 == 42.
+
 test('select 1') :-
     parse("[a = [b=0;];]", C),
     eval(as_expr "a.b", C, R),
