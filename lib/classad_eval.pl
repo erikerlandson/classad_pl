@@ -52,7 +52,7 @@ atomic_expr('[str]'(_)).
 atomic_expr(true).
 atomic_expr(false).
 atomic_expr(undefined).
-atomic_expr('[abstime]'(_)).
+atomic_expr('[abstime]'(_,_)).
 atomic_expr('[reltime]'(_)).
 atomic_expr('[classad]'(_)).
 atomic_expr(error).
@@ -312,15 +312,17 @@ strict_function(abstime).
 arg_format(time, []). 
 arg_format(abstime, []).
 arg_format(abstime, [_]).
+arg_format(abstime, [_,_]).
 
 % function time()
 evf([C, time, []], [C, R]) :- get_time(T), R is integer(T).
 
 % function abstime() 
-evf([C, abstime, []], [C, '[abstime]'(T)]) :- get_time(T).
-evf([C, abstime, [T]], [C, '[abstime]'(T)]) :- number(T).
-evf([C, abstime, ['[str]'(TS)]], [C, '[abstime]'(T)]) :- parse_time(TS, T).
-
+evf([C, abstime, []], [C, '[abstime]'(T,Z)]) :- get_time(T), local_tzo(Z).
+evf([C, abstime, [T,Z]], [C, '[abstime]'(T,WZ)]) :- number(T), number(Z), WZ is -Z.
+evf([C, abstime, [T]], [C, '[abstime]'(T,Z)]) :- number(T), local_tzo(Z).
+evf([C, abstime, ['[str]'(TS)]], [C, '[abstime]'(T,Z)]) :- parse_time(TS, T), local_tzo(Z).
+local_tzo(Z) :- stamp_date_time(0, DT, local), date_time_value(utc_offset, DT, Z).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,

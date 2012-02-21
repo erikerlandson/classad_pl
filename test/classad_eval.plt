@@ -1,13 +1,16 @@
+:- expects_dialect(swi).
+
 :- use_module(library(debug)).
 :- use_module(library(plunit)).
 
 :- use_module(library(lists)).
 :- use_module(library(assoc)).
+:- use_module(library(date)).
 
 :- use_module('../lib/classad_parser.pl').
 :- use_module('../lib/classad_eval.pl').
 
-:- expects_dialect(swi).
+local_tzo(Z) :- stamp_date_time(0, DT, local), date_time_value(utc_offset, DT, Z).
 
 :- begin_tests(classad_eval_ut).
 
@@ -708,25 +711,45 @@ test('func time 3') :-
 
 test('func abstime 1') :-
     get_time(T0),
+    local_tzo(Z0),
     parse("[a = abstime()]", C),
     eval(as_expr "a", C, R),
     get_time(T1),
-    R = '[abstime]'(T),
+    R = '[abstime]'(T,Z),
     number(T),
+    number(Z),
     T >= T0,
-    T1 >= T.
+    T1 >= T,
+    Z =:= Z0.
 
 test('func abstime 2') :-
+    local_tzo(Z0),
     parse("[a = abstime(1329798052)]", C),
     eval(as_expr "a", C, R),
-    R = '[abstime]'(T),
-    T =:= 1329798052.
+    R = '[abstime]'(T,Z),
+    number(T),
+    number(Z),
+    T =:= 1329798052,
+    Z =:= Z0.
+
+test('func abstime 2a') :-
+    parse("[a = abstime(1329798052,3600)]", C),
+    eval(as_expr "a", C, R),
+    R = '[abstime]'(T,Z),
+    number(T),
+    number(Z),
+    T =:= 1329798052,
+    Z =:= -3600.
 
 test('func abstime 3') :-
+    local_tzo(Z0),
     parse("[a = abstime(\"2012-02-20\")]", C),
     eval(as_expr "a", C, R),
-    R = '[abstime]'(T),
-    T =:= 1329696000.
+    R = '[abstime]'(T,Z),
+    number(T),
+    number(Z),
+    T =:= 1329696000,
+    Z =:= Z0.
 
 test('func abstime 4') :-
     parse("[a = abstime(b)]", C),
