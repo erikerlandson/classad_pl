@@ -5,6 +5,7 @@
 
 :- expects_dialect(swi).
 
+
 unparse_reltime(RTS, RTE) :- 
     number(RTS),
     ((RTS < 0) -> (SG = "-", SS is -RTS) ; (SG = "", SS is RTS)),
@@ -13,11 +14,26 @@ unparse_reltime(RTS, RTE) :-
     H is DR // 3600, HR is DR mod 3600,
     M is HR // 60, MR is HR mod 60,
     S is MR + FS,
-    with_output_to(atom(A1), format("~s~d+", [SG, D])),
-    with_output_to(atom(A2), format("~0t~d~2+:", [H])),
-    with_output_to(atom(A3), format("~0t~d~2+:", [M])),
-    with_output_to(atom(A4), format("~0t~3f~6+", [S])),
+    ((D > 0) -> (
+        with_output_to(atom(A1), format("~s~d+", [SG, D])),
+        with_output_to(atom(A2), format("~0t~d~2+:", [H])),
+        with_output_to(atom(A3), format("~0t~d~2+:", [M])),
+        with_output_to(atom(A4), format("~0t~3f~6+", [S]))
+    ) ; ( (H > 0) -> (
+        A1 = '',
+        with_output_to(atom(A2), format("~s~d:", [SG, H])),
+        with_output_to(atom(A3), format("~0t~d~2+:", [M])),
+        with_output_to(atom(A4), format("~0t~3f~6+", [S]))
+    ) ; ( (M > 0) -> (
+        A1 = '', A2 = '',
+        with_output_to(atom(A3), format("~s~d:", [SG,M])),
+        with_output_to(atom(A4), format("~0t~3f~6+", [S]))
+    ) ; (
+        A1 = '', A2 = '', A3 = '', 
+        with_output_to(atom(A4), format("~s~3f", [SG,S]))
+    )))),
     concat_atom([A1,A2,A3,A4], RTE).
+
 
 % parse a string containing a reltime expression, and return the corresponding number of seconds.
 parse_reltime(RTE, S) :- reltime(S, RTE, []), !.

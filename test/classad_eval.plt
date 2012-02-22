@@ -812,8 +812,43 @@ test('func reltime 7') :-
     R = undefined.
 
 test('func interval 1') :-
-    parse("[a = interval(98661.1)]", C),
+    parse("[a = interval(1.1)]", C),
     eval(as_expr "a", C, R),
-    R == '[str]'('1+03:24:21.100').
+    R == '[str]'('1.100').
+
+test('func interval 2') :-
+    parse("[a = interval(-1.1)]", C),
+    eval(as_expr "a", C, R),
+    R == '[str]'('-1.100').
+
+test('func interval 3') :-
+    parse("[a = interval(61.1)]", C),
+    eval(as_expr "a", C, R),
+    R == '[str]'('1:01.100').
+
+test('func interval 4') :-
+    parse("[a = interval(-61.1)]", C),
+    eval(as_expr "a", C, R),
+    R == '[str]'('-1:01.100').
+
+test('func interval 5') :-
+    parse("[a = interval(3661.1)]", C),
+    eval(as_expr "a", C, R),
+    R == '[str]'('1:01:01.100').
+
+test('func interval 6') :-
+    parse("[a = interval(-3661.1)]", C),
+    eval(as_expr "a", C, R),
+    R == '[str]'('-1:01:01.100').
+
+test('func interval 7') :-
+    parse("[a = interval(90061.1)]", C),
+    eval(as_expr "a", C, R),
+    R == '[str]'('1+01:01:01.100').
+
+test('func interval 8') :-
+    parse("[a = interval(-90061.1)]", C),
+    eval(as_expr "a", C, R),
+    R == '[str]'('-1+01:01:01.100').
 
 :- end_tests(classad_eval_ut).
