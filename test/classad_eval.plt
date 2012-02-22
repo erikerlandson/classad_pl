@@ -811,4 +811,9 @@ test('func reltime 7') :-
     eval(as_expr "a", C, R),
     R = undefined.
 
+test('func interval 1') :-
+    parse("[a = interval(98661.1)]", C),
+    eval(as_expr "a", C, R),
+    R == '[str]'('1+03:24:21.100').
+
 :- end_tests(classad_eval_ut).

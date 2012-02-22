@@ -309,6 +309,7 @@ evfc([C, FN, AL], [RC, R]) :- evf([C, FN, AL], [RC, R]).
 strict_function(time).
 strict_function(abstime).
 strict_function(reltime).
+strict_function(interval).
 
 % these define legal argument formats for given functions
 arg_format(time, []). 
@@ -316,6 +317,7 @@ arg_format(abstime, []).
 arg_format(abstime, [_]).
 arg_format(abstime, [_,_]).
 arg_format(reltime, [_]).
+arg_format(interval, [_]).
 
 % function time()
 evf([C, time, []], [C, R]) :- get_time(T), R is integer(T).
@@ -329,6 +331,8 @@ local_tzo(Z) :- stamp_date_time(0, DT, local), date_time_value(utc_offset, DT, Z
 
 evf([C, reltime, ['[str]'(TA)]], [C, '[reltime]'(S)]) :- atom_codes(TA, TS), parse_reltime(TS, S).
 evf([C, reltime, [S]], [C, '[reltime]'(S)]) :- number(S).
+
+evf([C, interval, [S]], [C, '[str]'(SS)]) :- number(S), unparse_reltime(S, SS).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,

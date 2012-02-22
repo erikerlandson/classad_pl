@@ -1,6 +1,23 @@
 :- module(classad_reltime_parser,
-          [parse_reltime/2  % parse_reltime(ReltimeExpression, Seconds)
+          [parse_reltime/2,  % parse_reltime(ReltimeExpression, Seconds)
+           unparse_reltime/2
           ]).
+
+:- expects_dialect(swi).
+
+unparse_reltime(RTS, RTE) :- 
+    number(RTS),
+    ((RTS < 0) -> (SG = "-", SS is -RTS) ; (SG = "", SS is RTS)),
+    WS is floor(SS), FS is SS-WS,
+    D is WS // 86400, DR is WS mod 86400,
+    H is DR // 3600, HR is DR mod 3600,
+    M is HR // 60, MR is HR mod 60,
+    S is MR + FS,
+    with_output_to(atom(A1), format("~s~d+", [SG, D])),
+    with_output_to(atom(A2), format("~0t~d~2+:", [H])),
+    with_output_to(atom(A3), format("~0t~d~2+:", [M])),
+    with_output_to(atom(A4), format("~0t~3f~6+", [S])),
+    concat_atom([A1,A2,A3,A4], RTE).
 
 % parse a string containing a reltime expression, and return the corresponding number of seconds.
 parse_reltime(RTE, S) :- reltime(S, RTE, []), !.
