@@ -13,6 +13,7 @@
 
 % classad libs:
 :- use_module(classad_parser).
+:- use_module(classad_reltime_parser).
 
 
 % Used to denote "parse the following into an expression":
@@ -307,12 +308,14 @@ evfc([C, FN, AL], [RC, R]) :- evf([C, FN, AL], [RC, R]).
 % define functions with strict argument semantics:
 strict_function(time).
 strict_function(abstime).
+strict_function(reltime).
 
 % these define legal argument formats for given functions
 arg_format(time, []). 
 arg_format(abstime, []).
 arg_format(abstime, [_]).
 arg_format(abstime, [_,_]).
+arg_format(reltime, [_]).
 
 % function time()
 evf([C, time, []], [C, R]) :- get_time(T), R is integer(T).
@@ -323,6 +326,9 @@ evf([C, abstime, [T,Z]], [C, '[abstime]'(T,WZ)]) :- number(T), integer(Z), WZ is
 evf([C, abstime, [T]], [C, '[abstime]'(T,Z)]) :- number(T), local_tzo(Z).
 evf([C, abstime, ['[str]'(TS)]], [C, '[abstime]'(T,Z)]) :- parse_time(TS, T), local_tzo(Z).
 local_tzo(Z) :- stamp_date_time(0, DT, local), date_time_value(utc_offset, DT, Z).
+
+evf([C, reltime, ['[str]'(TA)]], [C, '[reltime]'(S)]) :- atom_codes(TA, TS), parse_reltime(TS, S).
+evf([C, reltime, [S]], [C, '[reltime]'(S)]) :- number(S).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,

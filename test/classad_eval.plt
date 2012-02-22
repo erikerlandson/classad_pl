@@ -766,4 +766,49 @@ test('func abstime 6') :-
     eval(as_expr "a", C, R),
     R = error.
 
+test('func reltime 1') :-
+    parse("[a = reltime(1000)]", C),
+    eval(as_expr "a", C, R),
+    R = '[reltime]'(S),
+    number(S),
+    S == 1000.
+
+test('func reltime 2') :-
+    parse("[a = reltime(\"1+01:01:01\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[reltime]'(S),
+    number(S),
+    S == 90061.
+
+test('func reltime 3') :-
+    parse("[a = reltime(\"-1+01:01:01\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[reltime]'(S),
+    number(S),
+    S == -90061.
+
+test('func reltime 4') :-
+    parse("[a = reltime(\"1h 1s\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[reltime]'(S),
+    number(S),
+    S == 3601.
+
+test('func reltime 5') :-
+    parse("[a = reltime(\"1+ 1m\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[reltime]'(S),
+    number(S),
+    S == 86460.
+
+test('func reltime 6') :-
+    parse("[a = reltime(\"\")]", C),
+    eval(as_expr "a", C, R),
+    R = error.
+
+test('func reltime 7') :-
+    parse("[a = reltime(b)]", C),
+    eval(as_expr "a", C, R),
+    R = undefined.
+
 :- end_tests(classad_eval_ut).
