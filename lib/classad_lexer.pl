@@ -89,12 +89,15 @@ drest([]) --> "".
 % prolog proof, define these starting with longest tokens first.
 sym('=?=') --> "=?=".
 sym('=!=') --> "=!=".
+sym('>>>') --> ">>>".
 sym('||') --> "||".
 sym('&&') --> "&&".
 sym('<=') --> "<=".
 sym('>=') --> ">=".
 sym('==') --> "==".
 sym('!=') --> "!=".
+sym('>>') --> ">>".
+sym('<<') --> "<<".
 sym('(') --> "(".
 sym(')') --> ")".
 sym('[') --> "[".

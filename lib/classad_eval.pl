@@ -83,11 +83,19 @@ bitwise_op('&').
 relaxed_comp_op('=?=').
 relaxed_comp_op('=!=').
 
+shift_op('>>>').
+shift_op('>>').
+shift_op('<<').
+
 promote_for_bitwise(I, I) :- integer(I).
 promote_for_bitwise(true, true).
 promote_for_bitwise(false, false).
 promote_for_bitwise(undefined, undefined).
 promote_for_bitwise(_, error).
+
+promote_for_shift(I, I) :- integer(I).
+promote_for_shift(undefined, undefined).
+promote_for_shift(_, error).
 
 promote_to_numeric(N, N) :- number(N).
 promote_to_numeric(true, 1).
@@ -191,6 +199,8 @@ ev_strict_binary('^', false, false, false).
 ev_strict_binary('^', true, false, true).
 ev_strict_binary('^', false, true, true).
 ev_strict_binary('^', true, true, false).
+ev_strict_binary('<<', X, Y, R) :- integer(X), integer(Y), R is X << Y.
+ev_strict_binary('>>', X, Y, R) :- integer(X), integer(Y), R is X >> Y.
 ev_strict_binary(_, _, _, error).
 
 ev_strict_unary(_, error, error).
@@ -343,6 +353,13 @@ ev([C, '~'(SE)], [C, R]) :-
     ev([C, SE], [_, SR]),
     promote_for_bitwise(SR, SB),
     ev_strict_unary('~', SB, R).
+
+% shift binary ops
+ev([C, E], [C, R]) :- 
+    E=..[OP, SL, SR], shift_op(OP), 
+    ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
+    promote_for_shift(LR, LN), promote_for_shift(RR, RN), 
+    ev_strict_binary(OP, LN, RN, R).
 
 % indexing [] operator
 ev([C, '[]'(BE, IE)], [RC, R]) :-

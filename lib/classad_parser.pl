@@ -35,6 +35,10 @@ comp_op('>').
 comp_op('=?=').
 comp_op('=!=').
 
+shift_op('>>>').
+shift_op('>>').
+shift_op('<<').
+
 add_op('+').
 add_op('-').
 
@@ -73,8 +77,12 @@ bwandseq(E) --> comp(SE), bwandrest(SE, E).
 bwandrest(SE, E) --> ['&'], comp(SE2), { TE = '&'(SE,SE2) }, bwandrest(TE, E).
 bwandrest(E, E) --> [].
 
-comp(E) --> addsubseq(SE1), [OP], { comp_op(OP) }, addsubseq(SE2), { E =.. [OP,SE1,SE2] }.
-comp(E) --> addsubseq(E).
+comp(E) --> shiftseq(SE1), [OP], { comp_op(OP) }, shiftseq(SE2), { E =.. [OP,SE1,SE2] }.
+comp(E) --> shiftseq(E).
+
+shiftseq(E) --> addsubseq(SE), shiftrest(SE, E).
+shiftrest(SE, E) --> [OP], { shift_op(OP) }, addsubseq(SE2), { TE =.. [OP,SE,SE2] }, shiftrest(TE, E).
+shiftrest(E, E) --> [].
 
 addsubseq(E) --> muldivseq(SE), addsubrest(SE, E).
 addsubrest(SE, E) --> [OP], { add_op(OP) }, muldivseq(SE2), { TE =.. [OP,SE,SE2] }, addsubrest(TE, E).

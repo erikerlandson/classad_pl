@@ -1003,6 +1003,36 @@ test('op~ 2') :-
     eval('a', C, R),
     R == undefined.
 
+test('op>> 1') :-
+    parse("[a = 8 >> 1]", C),
+    eval('a', C, R),
+    R == 4.
+
+test('op>> 2') :-
+    parse("[a = -8 >> 1]", C),
+    eval('a', C, R),
+    R == -4.
+
+test('op>> 3') :-
+    parse("[a = -8 >> b]", C),
+    eval('a', C, R),
+    R == undefined.
+
+test('op<< 1') :-
+    parse("[a = 8 << 1]", C),
+    eval('a', C, R),
+    R == 16.
+
+test('op<< 2') :-
+    parse("[a = -8 << 1]", C),
+    eval('a', C, R),
+    R == -16.
+
+test('op<< 3') :-
+    parse("[a = b << 1]", C),
+    eval('a', C, R),
+    R == undefined.
+
 test('func time 1') :-
     get_time(T0),
     parse("[a = time()]", C),
