@@ -206,7 +206,7 @@ ev_strict_binary('<<', X, Y, R) :- integer(X), integer(Y), R is X << Y.
 ev_strict_binary('>>', X, Y, R) :- integer(X), integer(Y), R is X >> Y.
 ev_strict_binary('>>>', X, Y, R) :- integer(X), integer(Y), Y =< 0, R is X << Y.
 ev_strict_binary('>>>', X, Y, R) :- integer(X), integer(Y), X >= 0, R is X >> Y.
-ev_strict_binary('>>>', X, Y, R) :- integer(X), integer(Y), max_int(Z), R is (X/\Z) >> (Y-1).
+ev_strict_binary('>>>', X, Y, R) :- integer(X), integer(Y), max_int(Z), R is ((X >> 1) /\ Z) >> (Y-1).
 ev_strict_binary(_, _, _, error).
 
 ev_strict_unary(_, error, error).
