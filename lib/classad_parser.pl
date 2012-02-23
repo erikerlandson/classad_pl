@@ -26,14 +26,17 @@ reserved_expr(error).
 reserved_op(is).
 reserved_op(isnt).
 
-comp_op('==').
-comp_op('!=').
+eq_op('==').
+eq_op('!=').
+eq_op('=?=').
+eq_op('=!=').
+eq_op('is').
+eq_op('isnt').
+
 comp_op('<=').
 comp_op('>=').
 comp_op('<').
 comp_op('>').
-comp_op('=?=').
-comp_op('=!=').
 
 shift_op('>>>').
 shift_op('>>').
@@ -73,12 +76,17 @@ bwxorseq(E) --> bwandseq(SE), bwxorrest(SE, E).
 bwxorrest(SE, E) --> ['^'], bwandseq(SE2), { TE = '^'(SE,SE2) }, bwxorrest(TE, E).
 bwxorrest(E, E) --> [].
 
-bwandseq(E) --> comp(SE), bwandrest(SE, E).
-bwandrest(SE, E) --> ['&'], comp(SE2), { TE = '&'(SE,SE2) }, bwandrest(TE, E).
+bwandseq(E) --> equalseq(SE), bwandrest(SE, E).
+bwandrest(SE, E) --> ['&'], equalseq(SE2), { TE = '&'(SE,SE2) }, bwandrest(TE, E).
 bwandrest(E, E) --> [].
 
-comp(E) --> shiftseq(SE1), [OP], { comp_op(OP) }, shiftseq(SE2), { E =.. [OP,SE1,SE2] }.
-comp(E) --> shiftseq(E).
+equalseq(E) --> compseq(SE), equalrest(SE, E).
+equalrest(SE, E) --> [OP], { eq_op(OP) }, compseq(SE2), { TE =.. [OP,SE,SE2] }, equalrest(TE, E).
+equalrest(E, E) --> [].
+
+compseq(E) --> shiftseq(SE), comprest(SE, E).
+comprest(SE, E) --> [OP], { comp_op(OP) }, shiftseq(SE2), { TE =.. [OP,SE,SE2] }, comprest(TE, E).
+comprest(E, E) --> [].
 
 shiftseq(E) --> addsubseq(SE), shiftrest(SE, E).
 shiftrest(SE, E) --> [OP], { shift_op(OP) }, addsubseq(SE2), { TE =.. [OP,SE,SE2] }, shiftrest(TE, E).
