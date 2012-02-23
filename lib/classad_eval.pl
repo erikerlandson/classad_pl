@@ -35,6 +35,9 @@ eval(E, C, R) :- is_list(C), forall(member(X, C), functor(X, '[classad]', 1)), e
 :- discontiguous(ev/2).
 :- discontiguous(evf/2).
 
+% this will be different on other dialects.
+max_int(Z) :- yap_flag(max_tagged_integer, Z).
+
 % utility for constructing pairs
 pair(A, B, [A,B]).
 
@@ -201,6 +204,9 @@ ev_strict_binary('^', false, true, true).
 ev_strict_binary('^', true, true, false).
 ev_strict_binary('<<', X, Y, R) :- integer(X), integer(Y), R is X << Y.
 ev_strict_binary('>>', X, Y, R) :- integer(X), integer(Y), R is X >> Y.
+ev_strict_binary('>>>', X, Y, R) :- integer(X), integer(Y), Y =< 0, R is X << Y.
+ev_strict_binary('>>>', X, Y, R) :- integer(X), integer(Y), X >= 0, R is X >> Y.
+ev_strict_binary('>>>', X, Y, R) :- integer(X), integer(Y), max_int(Z), R is (X/\Z) >> (Y-1).
 ev_strict_binary(_, _, _, error).
 
 ev_strict_unary(_, error, error).

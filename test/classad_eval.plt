@@ -1033,6 +1033,23 @@ test('op<< 3') :-
     eval('a', C, R),
     R == undefined.
 
+test('op>>> 1') :-
+    parse("[a = 8 >>> 1]", C),
+    eval('a', C, R),
+    R == 4.
+
+test('op>>> 2') :-
+    parse("[a = -1 >>> 1]", C),
+    eval('a', C, R),
+    classad_eval:max_int(Z),
+    R == Z.
+
+test('op>>> 3') :-
+    parse("[a = -1 >>> 2]", C),
+    eval('a', C, R),
+    classad_eval:max_int(Z),
+    R =:= Z/2.
+
 test('func time 1') :-
     get_time(T0),
     parse("[a = time()]", C),
