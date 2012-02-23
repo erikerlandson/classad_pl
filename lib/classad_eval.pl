@@ -347,6 +347,25 @@ ev([C, E], [C, R]) :-
     promote_for_comparison(LR, LC), promote_for_comparison(RR, RC), 
     ev_relaxed_comp(OP, LC, RC, R).
 
+ev([C, 'is'(SL, SR)], [C, R]) :-
+    ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
+    ev_is(LR, RR, R).
+% Two values are equal wrt 'is' iff they are structurally identical.
+% Note, this slightly deviates from classad language standard, for types list and 
+% classad/record, as the language spec states that two values of that type must be
+% the same structure, not just two structures that are the same.  Prolog makes
+% that distinction difficult to implement, and I dont think it is a very
+% important sematic.
+ev_is(V, V, true).
+ev_is(_, _, false).
+
+ev([C, 'isnt'(SL, SR)], [C, R]) :-
+    ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
+    ev_isnt(LR, RR, R).
+ev_isnt(V, V, false).
+ev_isnt(_, _, true).
+
+
 % bitwise binary ops
 ev([C, E], [C, R]) :- 
     E=..[OP, SL, SR], bitwise_op(OP), 

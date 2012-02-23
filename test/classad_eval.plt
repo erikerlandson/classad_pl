@@ -858,6 +858,68 @@ test('op=!= 7') :-
     eval(as_expr "a", C, R),
     R == false.
 
+test('is isnt 1') :-
+    eval(as_expr "error is error", [], true),
+    eval(as_expr "error isnt error", [], false),
+    eval(as_expr "undefined is undefined", [], true),
+    eval(as_expr "undefined isnt undefined", [], false),
+    eval(as_expr "true is true", [], true),
+    eval(as_expr "true isnt true", [], false),
+    eval(as_expr "false is false", [], true),
+    eval(as_expr "false isnt false", [], false),
+    eval(as_expr "error is undefined", [], false),
+    eval(as_expr "error isnt undefined", [], true),
+    eval(as_expr "error is undefined", [], false),
+    eval(as_expr "error isnt undefined", [], true),
+    eval(as_expr "true is undefined", [], false),
+    eval(as_expr "false isnt undefined", [], true).
+
+test('is isnt 2') :-
+    eval(as_expr "\"z\" is \"z\"", [], true),
+    eval(as_expr "\"z\" isnt \"z\"", [], false),
+    eval(as_expr "\"Z\" is \"z\"", [], false),
+    eval(as_expr "\"z\" isnt \"Z\"", [], true).
+
+test('is isnt 3') :-
+    eval(as_expr "abstime(\"2012-02\") is abstime(\"2012-02\")", [], true),
+    eval(as_expr "abstime(\"2012-02\") isnt abstime(\"2012-02\")", [], false),
+    eval(as_expr "abstime(\"2012-03\") is abstime(\"2012-02\")", [], false),
+    eval(as_expr "abstime(\"2012-02\") isnt abstime(\"2012-03\")", [], true).
+
+test('is isnt 4') :-
+    eval(as_expr "reltime(\"1\") is abstime(\"1\")", [], true),
+    eval(as_expr "reltime(\"1\") isnt abstime(\"1\")", [], false),
+    eval(as_expr "reltime(\"1\") is abstime(\"2\")", [], false),
+    eval(as_expr "reltime(\"2\") isnt abstime(\"1\")", [], true).
+
+test('is isnt 5') :-
+    eval(as_expr "42 is 42", [], true),
+    eval(as_expr "42 isnt 42", [], false),
+    eval(as_expr "69 is 42", [], false),
+    eval(as_expr "42 isnt 69", [], true).
+
+test('is isnt 6') :-
+    eval(as_expr "42.0 is 42.0", [], true),
+    eval(as_expr "42.0 isnt 42.0", [], false),
+    eval(as_expr "69.0 is 42.0", [], false),
+    eval(as_expr "42.0 isnt 69.0", [], true).
+
+test('is isnt 7') :-
+    eval(as_expr "42 is 42.0", [], false),
+    eval(as_expr "42.0 isnt 42", [], true).
+
+test('is isnt 8') :-
+    eval(as_expr "{0} is {0}", [], true),
+    eval(as_expr "{0} isnt {0}", [], false),
+    eval(as_expr "{0} is {1}", [], false),
+    eval(as_expr "{0} isnt {1}", [], true).
+
+test('is isnt 9') :-
+    eval(as_expr "[a=4] is [a=4]", [], true),
+    eval(as_expr "[a=4] isnt [a=4]", [], false),
+    eval(as_expr "[b=4] is [a=4]", [], false),
+    eval(as_expr "[b=4] isnt [a=4]", [], true).
+
 test('op[] 1') :-
     parse("[a = {1}[0]]", C),
     eval(as_expr "a", C, R),
