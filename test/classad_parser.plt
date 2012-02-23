@@ -209,4 +209,24 @@ test('conditional 2') :-
     parse("a || b  ?  c || d ? 0 : 1   :  e || f", E),
     E == '?:'('||'(a,b), '?:'('||'(c,d), 0, 1), '||'(e,f)). 
 
+test('op| 1') :-
+    parse("x | y | z", E),
+    E == '|'('|'(x,y),z).
+
+test('op^ 1') :-
+    parse("x ^ y ^ z", E),
+    E == '^'('^'(x,y),z).
+
+test('op& 1') :-
+    parse("x & y & z", E),
+    E == '&'('&'(x,y),z).
+
+test('op~ 1') :-
+    parse("~~x", E),
+    E == '~'('~'(x)).
+
+test('bitwise 1') :-
+    parse("x & ~y ^ z | ~w ^ y & z", E),
+    E == '|'('^'('&'(x,'~'(y)), z),'^'('~'(w),'&'(y,z))).
+
 :- end_tests(classad_parser_ut).

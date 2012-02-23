@@ -84,7 +84,7 @@ drest([D|R]) --> dhead(D), drest(R).
 drest([]) --> "".
 
 
-% symbol tokens
+% symbol/operator tokens
 % to get longest-lex behavior as the first choice from
 % prolog proof, define these starting with longest tokens first.
 sym('=?=') --> "=?=".
@@ -115,3 +115,7 @@ sym('?') --> "?".
 sym(':') --> ":".
 sym(';') --> ";".
 sym('.') --> ".".
+sym('|') --> "|".
+sym('&') --> "&".
+sym('^') --> "^".
+sym('~') --> "~".

@@ -45,6 +45,7 @@ mul_op('%').
 unary_op('!').
 unary_op('-').
 unary_op('+').
+unary_op('~').
 
 expr(E) --> cond(E).
 
@@ -56,9 +57,21 @@ orseq(E) --> andseq(SE), orrest(SE, E).
 orrest(SE, E) --> ['||'], andseq(SE2), { TE = '||'(SE,SE2) }, orrest(TE, E).
 orrest(E, E) --> [].
 
-andseq(E) --> comp(SE), andrest(SE, E).
-andrest(SE, E) --> ['&&'], comp(SE2), { TE = '&&'(SE,SE2) }, andrest(TE, E).
+andseq(E) --> bworseq(SE), andrest(SE, E).
+andrest(SE, E) --> ['&&'], bworseq(SE2), { TE = '&&'(SE,SE2) }, andrest(TE, E).
 andrest(E, E) --> [].
+
+bworseq(E) --> bwxorseq(SE), bworrest(SE, E).
+bworrest(SE, E) --> ['|'], bwxorseq(SE2), { TE = '|'(SE,SE2) }, bworrest(TE, E).
+bworrest(E, E) --> [].
+
+bwxorseq(E) --> bwandseq(SE), bwxorrest(SE, E).
+bwxorrest(SE, E) --> ['^'], bwandseq(SE2), { TE = '^'(SE,SE2) }, bwxorrest(TE, E).
+bwxorrest(E, E) --> [].
+
+bwandseq(E) --> comp(SE), bwandrest(SE, E).
+bwandrest(SE, E) --> ['&'], comp(SE2), { TE = '&'(SE,SE2) }, bwandrest(TE, E).
+bwandrest(E, E) --> [].
 
 comp(E) --> addsubseq(SE1), [OP], { comp_op(OP) }, addsubseq(SE2), { E =.. [OP,SE1,SE2] }.
 comp(E) --> addsubseq(E).

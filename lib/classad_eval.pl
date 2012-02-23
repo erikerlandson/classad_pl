@@ -76,8 +76,18 @@ comparison_op('>').
 comparison_op('<=').
 comparison_op('>=').
 
+bitwise_op('|').
+bitwise_op('^').
+bitwise_op('&').
+
 relaxed_comp_op('=?=').
 relaxed_comp_op('=!=').
+
+promote_for_bitwise(I, I) :- integer(I).
+promote_for_bitwise(true, true).
+promote_for_bitwise(false, false).
+promote_for_bitwise(undefined, undefined).
+promote_for_bitwise(_, error).
 
 promote_to_numeric(N, N) :- number(N).
 promote_to_numeric(true, 1).
@@ -166,6 +176,21 @@ ev_strict_binary('>=', '[abstime]'(X,_), '[abstime]'(Y,_), R) :- (X>=Y) -> R = t
 ev_strict_binary('>=', '[reltime]'(X), '[reltime]'(Y), R) :- (X>=Y) -> R = true ; R = false.
 ev_strict_binary('>=', '[str]'(X), '[str]'(Y), R) :- ((X @>= Y, R = true); R = false).
 ev_strict_binary('>=', X, Y, R) :- number(X), number(Y), ((X >= Y, R = true); R = false).
+ev_strict_binary('|', X, Y, R) :- integer(X), integer(Y), R is X \/ Y.
+ev_strict_binary('|', true, true, true).
+ev_strict_binary('|', false, true, true).
+ev_strict_binary('|', true, false, true).
+ev_strict_binary('|', false, false, false).
+ev_strict_binary('&', X, Y, R) :- integer(X), integer(Y), R is X /\ Y.
+ev_strict_binary('&', false, false, false).
+ev_strict_binary('&', true, false, false).
+ev_strict_binary('&', false, true, false).
+ev_strict_binary('&', true, true, true).
+ev_strict_binary('^', X, Y, R) :- integer(X), integer(Y), R is X >< Y.
+ev_strict_binary('^', false, false, false).
+ev_strict_binary('^', true, false, true).
+ev_strict_binary('^', false, true, true).
+ev_strict_binary('^', true, true, false).
 ev_strict_binary(_, _, _, error).
 
 ev_strict_unary(_, error, error).
@@ -177,6 +202,9 @@ ev_strict_unary('-', X, Y) :- number(X), Y is -X.
 ev_strict_unary('-', '[reltime]'(T), '[reltime]'(R)) :- R is -T.
 ev_strict_unary('!', true, false).
 ev_strict_unary('!', false, true).
+ev_strict_unary('~', X, Y) :- integer(X), Y is \X.
+ev_strict_unary('~', true, false).
+ev_strict_unary('~', false, true).
 ev_strict_unary(_, _, error).
 
 ev_and(error, _, error).
@@ -302,6 +330,19 @@ ev([C, E], [C, R]) :-
     ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
     promote_for_comparison(LR, LC), promote_for_comparison(RR, RC), 
     ev_relaxed_comp(OP, LC, RC, R).
+
+% bitwise binary ops
+ev([C, E], [C, R]) :- 
+    E=..[OP, SL, SR], bitwise_op(OP), 
+    ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
+    promote_for_bitwise(LR, LN), promote_for_bitwise(RR, RN), 
+    ev_strict_binary(OP, LN, RN, R).
+
+% biwise ~ operator
+ev([C, '~'(SE)], [C, R]) :-
+    ev([C, SE], [_, SR]),
+    promote_for_bitwise(SR, SB),
+    ev_strict_unary('~', SB, R).
 
 % indexing [] operator
 ev([C, '[]'(BE, IE)], [RC, R]) :-

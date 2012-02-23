@@ -948,6 +948,61 @@ test('op[] 18') :-
     eval(as_expr "c", C, R),
     R == 88.
 
+test('op| 1') :-
+    parse("[a = 1 | 4]", C),
+    eval('a', C, R),
+    R == 5.
+
+test('op| 2') :-
+    parse("[a = false | true]", C),
+    eval('a', C, R),
+    R == true.
+
+test('op| 3') :-
+    parse("[a = b | true]", C),
+    eval('a', C, R),
+    R == undefined.
+
+test('op& 1') :-
+    parse("[a = 3 & 6]", C),
+    eval('a', C, R),
+    R == 2.
+
+test('op& 2') :-
+    parse("[a = false & true]", C),
+    eval('a', C, R),
+    R == false.
+
+test('op& 3') :-
+    parse("[a = false & b]", C),
+    eval('a', C, R),
+    R == undefined.
+
+test('op^ 1') :-
+    parse("[a = 3 ^ 6]", C),
+    eval('a', C, R),
+    R == 5.
+
+test('op^ 2') :-
+    parse("[a = false ^ true]", C),
+    eval('a', C, R),
+    R == true.
+
+test('op^ 3') :-
+    parse("[a = b ^ true]", C),
+    eval('a', C, R),
+    R == undefined.
+
+test('op~ 1') :-
+    parse("[a = ~0]", C),
+    eval('a', C, R),
+    R == -1.
+
+test('op~ 2') :-
+    parse("[a = ~b]", C),
+    eval('a', C, R),
+    R == undefined.
+
 test('func time 1') :-
     get_time(T0),
     parse("[a = time()]", C),
