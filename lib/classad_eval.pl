@@ -85,6 +85,14 @@ promote_to_numeric(false, 0).
 promote_to_numeric(undefined, undefined).
 promote_to_numeric(_, error).
 
+promote_for_arithmetic(N, N) :- number(N).
+promote_for_arithmetic(true, 1).
+promote_for_arithmetic(false, 0).
+promote_for_arithmetic(undefined, undefined).
+promote_for_arithmetic('[abstime]'(T,Z), '[abstime]'(T,Z)).
+promote_for_arithmetic('[reltime]'(T), '[reltime]'(T)).
+promote_for_arithmetic(_, error).
+
 promote_to_boolean(true, true).
 promote_to_boolean(false, false).
 promote_to_boolean(0, false).
@@ -98,6 +106,8 @@ promote_for_comparison('[str]'(X), '[str]'(X)).
 promote_for_comparison(true, 1).
 promote_for_comparison(false, 0).
 promote_for_comparison(undefined, undefined).
+promote_for_comparison('[abstime]'(T,Z), '[abstime]'(T,Z)).
+promote_for_comparison('[reltime]'(T), '[reltime]'(T)).
 promote_for_comparison(_, error).
 
 % relaxed comparisons return false if either argument is undefined (and not error).
@@ -115,27 +125,45 @@ ev_strict_binary(_, error, _, error).
 ev_strict_binary(_, _, error, error).
 ev_strict_binary(_, undefined, _, undefined).
 ev_strict_binary(_, _, undefined, undefined).
-ev_strict_binary('+', X, Y, R) :- R is X + Y.
-ev_strict_binary('-', X, Y, R) :- R is X - Y.
-ev_strict_binary('*', X, Y, R) :- R is X * Y.
+ev_strict_binary('+', X, Y, R) :- number(X), number(Y), R is X + Y.
+ev_strict_binary('+', '[abstime]'(X,Z), '[reltime]'(Y), '[abstime]'(R,Z)) :- R is X+Y.
+ev_strict_binary('+', '[reltime]'(X), '[abstime]'(Y,Z), '[abstime]'(R,Z)) :- R is X+Y.
+ev_strict_binary('+', '[reltime]'(X), '[reltime]'(Y), '[reltime]'(R)) :- R is X+Y.
+ev_strict_binary('-', X, Y, R) :- number(X), number(Y), R is X - Y.
+ev_strict_binary('-', '[abstime]'(X,_), '[abstime]'(Y,_), '[reltime]'(R)) :- R is X-Y.
+ev_strict_binary('-', '[abstime]'(X,Z), '[reltime]'(Y), '[abstime]'(R,Z)) :- R is X-Y.
+ev_strict_binary('-', '[reltime]'(X), '[reltime]'(Y), '[reltime]'(R)) :- R is X-Y.
+ev_strict_binary('*', X, Y, R) :- number(X), number(Y), R is X * Y.
 ev_strict_binary('/', _, 0, error).
 ev_strict_binary('/', _, 0.0, error).
 ev_strict_binary('/', X, Y, R) :- integer(X), integer(Y), R is X // Y.
-ev_strict_binary('/', X, Y, R) :- R is X / Y.
+ev_strict_binary('/', X, Y, R) :- number(X), number(Y), R is X / Y.
 ev_strict_binary('%', _, 0, error).
 ev_strict_binary('%', _, 0.0, error).
 ev_strict_binary('%', X, Y, R) :- integer(X), integer(Y), R is X mod Y.
-ev_strict_binary('%', X, Y, R) :- fmod(X, Y, R).
+ev_strict_binary('%', X, Y, R) :- number(X), number(Y), fmod(X, Y, R).
+ev_strict_binary('==', '[abstime]'(X,_), '[abstime]'(Y,_), R) :- (X=:=Y) -> R = true ; R = false.
+ev_strict_binary('==', '[reltime]'(X), '[reltime]'(Y), R) :- (X=:=Y) -> R = true ; R = false.
 ev_strict_binary('==', '[str]'(X), '[str]'(Y), R) :- ((X==Y, R = true); R = false).
 ev_strict_binary('==', X, Y, R) :- number(X), number(Y), ((X=:=Y, R = true); R = false).
+ev_strict_binary('!=', '[abstime]'(X,_), '[abstime]'(Y,_), R) :- (X=\=Y) -> R = true ; R = false.
+ev_strict_binary('!=', '[reltime]'(X), '[reltime]'(Y), R) :- (X=\=Y) -> R = true ; R = false.
 ev_strict_binary('!=', '[str]'(X), '[str]'(Y), R) :- ((X\==Y, R = true); R = false).
 ev_strict_binary('!=', X, Y, R) :- number(X), number(Y), ((X=\=Y, R = true); R = false).
+ev_strict_binary('<', '[abstime]'(X,_), '[abstime]'(Y,_), R) :- (X<Y) -> R = true ; R = false.
+ev_strict_binary('<', '[reltime]'(X), '[reltime]'(Y), R) :- (X<Y) -> R = true ; R = false.
 ev_strict_binary('<', '[str]'(X), '[str]'(Y), R) :- ((X @< Y, R = true); R = false).
 ev_strict_binary('<', X, Y, R) :- number(X), number(Y), ((X < Y, R = true); R = false).
+ev_strict_binary('>', '[abstime]'(X,_), '[abstime]'(Y,_), R) :- (X>Y) -> R = true ; R = false.
+ev_strict_binary('>', '[reltime]'(X), '[reltime]'(Y), R) :- (X>Y) -> R = true ; R = false.
 ev_strict_binary('>', '[str]'(X), '[str]'(Y), R) :- ((X @> Y, R = true); R = false).
 ev_strict_binary('>', X, Y, R) :- number(X), number(Y), ((X > Y, R = true); R = false).
+ev_strict_binary('<=', '[abstime]'(X,_), '[abstime]'(Y,_), R) :- (X=<Y) -> R = true ; R = false.
+ev_strict_binary('<=', '[reltime]'(X), '[reltime]'(Y), R) :- (X=<Y) -> R = true ; R = false.
 ev_strict_binary('<=', '[str]'(X), '[str]'(Y), R) :- ((X @=< Y, R = true); R = false).
 ev_strict_binary('<=', X, Y, R) :- number(X), number(Y), ((X =< Y, R = true); R = false).
+ev_strict_binary('>=', '[abstime]'(X,_), '[abstime]'(Y,_), R) :- (X>=Y) -> R = true ; R = false.
+ev_strict_binary('>=', '[reltime]'(X), '[reltime]'(Y), R) :- (X>=Y) -> R = true ; R = false.
 ev_strict_binary('>=', '[str]'(X), '[str]'(Y), R) :- ((X @>= Y, R = true); R = false).
 ev_strict_binary('>=', X, Y, R) :- number(X), number(Y), ((X >= Y, R = true); R = false).
 ev_strict_binary(_, _, _, error).
@@ -143,7 +171,10 @@ ev_strict_binary(_, _, _, error).
 ev_strict_unary(_, error, error).
 ev_strict_unary(_, undefined, undefined).
 ev_strict_unary('+', X, X) :- number(X).
+ev_strict_unary('+', '[abstime]'(T,Z), '[abstime]'(T,Z)).
+ev_strict_unary('+', '[reltime]'(T), '[reltime]'(T)).
 ev_strict_unary('-', X, Y) :- number(X), Y is -X.
+ev_strict_unary('-', '[reltime]'(T), '[reltime]'(R)) :- R is -T.
 ev_strict_unary('!', true, false).
 ev_strict_unary('!', false, true).
 ev_strict_unary(_, _, error).
@@ -211,13 +242,14 @@ ev([C, '[sel]'(SE, V)], R) :- ev([C, SE], [SC, SR]), ev([[SR|SC], V], R).
 ev([C, E], [C, R]) :- 
     E=..[OP, SL, SR], arithmetic_op(OP), 
     ev([C, SL], [_, LR]), ev([C, SR], [_, RR]),
-    promote_to_numeric(LR, LN), promote_to_numeric(RR, RN), 
+    promote_for_arithmetic(LR, LN), promote_for_arithmetic(RR, RN), 
     ev_strict_binary(OP, LN, RN, R).
 
+% unary sign ops
 ev([C, E], [C, R]) :- 
     E=..[OP, SE], sign_op(OP), 
     ev([C, SE], [_, SR]),
-    promote_to_numeric(SR, SN),
+    promote_for_arithmetic(SR, SN),
     ev_strict_unary(OP, SN, R).
 
 % && operator
@@ -332,7 +364,7 @@ local_tzo(Z) :- stamp_date_time(0, DT, local), date_time_value(utc_offset, DT, Z
 evf([C, reltime, ['[str]'(TA)]], [C, '[reltime]'(S)]) :- atom_codes(TA, TS), parse_reltime(TS, S).
 evf([C, reltime, [S]], [C, '[reltime]'(S)]) :- number(S).
 
-evf([C, interval, [S]], [C, '[str]'(SS)]) :- number(S), unparse_reltime(S, SS).
+evf([C, interval, [S]], [C, '[str]'(SS)]) :- number(S), with_output_to(atom(SS), unparse_reltime(S)).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,

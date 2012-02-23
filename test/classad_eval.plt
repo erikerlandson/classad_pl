@@ -170,10 +170,69 @@ test('add 6') :-
     eval(as_expr "a", C, R),
     R == error.
 
+test('add 7') :-
+    parse("[a = abstime(\"2012-02\") + reltime(\"1s\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[abstime]'(T,_),
+    parse_time('2012-02', S),
+    T =:= S+1.
+
+test('add 8') :-
+    parse("[a = reltime(\"1s\") + abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[abstime]'(T,_),
+    parse_time('2012-02', S),
+    T =:= S+1.
+
+test('add 9') :-
+    parse("[a = reltime(\"1s\") + reltime(\"1m\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[reltime]'(T),
+    T =:= 61.
+
+test('add 10') :-
+    parse("[a = abstime(\"2012-02\") + abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == error.
+
+test('add 11') :-
+    parse("[a = abstime(\"2012-02\") + abstime(b)]", C),
+    eval(as_expr "a", C, R),
+    R == undefined.
+
 test('sub 1') :-
     parse("[a = 3 - 2;]", C),
     eval(as_expr "a", C, R),
     R == 1.
+
+test('sub 2') :-
+    parse("[a = abstime(\"2012-02-10\") - abstime(\"2012-02-09\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[reltime]'(T),
+    T =:= 86400.
+
+test('sub 3') :-
+    parse("[a = abstime(\"2012-02\") - reltime(\"1s\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[abstime]'(T,_),
+    parse_time('2012-02', S),
+    T =:= S-1.
+
+test('sub 4') :-
+    parse("[a = reltime(\"1h\") - reltime(\"1s\")]", C),
+    eval(as_expr "a", C, R),
+    R = '[reltime]'(T),
+    T =:= 3599.
+
+test('sub 5') :-
+    parse("[a = reltime(\"1h\") - abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == error.
+
+test('sub 6') :-
+    parse("[a = reltime(\"1h\") - abstime(b)]", C),
+    eval(as_expr "a", C, R),
+    R == undefined.
 
 test('mul 1') :-
     parse("[a = 3.0 * 2;]", C),
@@ -350,6 +409,45 @@ test('promotion 3') :-
     eval(as_expr "a", C, R),
     R == 0.0.
 
+test('op- 1') :-
+    parse("[x = -(1+2)]", C),
+    eval(as_expr "x", C, R),
+    R == -3.
+
+test('op- 2') :-
+    parse("[x = -reltime(\"1m\")]", C),
+    eval(as_expr "x", C, R),
+    R = '[reltime]'(T),
+    T =:= -60.
+
+test('op- 3') :-
+    parse("[x = -abstime(\"2012-02\")]", C),
+    eval(as_expr "x", C, R),
+    R == error.
+
+test('op- 4') :-
+    parse("[x = -abstime(b)]", C),
+    eval(as_expr "x", C, R),
+    R == undefined.
+
+test('op+ 1') :-
+    parse("[x = +(1+2)]", C),
+    eval(as_expr "x", C, R),
+    R == 3.
+
+test('op+ 2') :-
+    parse("[x = +reltime(\"1m\")]", C),
+    eval(as_expr "x", C, R),
+    R = '[reltime]'(T),
+    T =:= 60.
+
+test('op+ 3') :-
+    parse("[x = +abstime(\"2012-02\")]", C),
+    eval(as_expr "x", C, R),
+    R = '[abstime]'(T,_),
+    parse_time('2012-02', S),
+    T =:= S.
+
 test('! op 1') :-
     parse("[a = !true]", C),
     eval(as_expr "a", C, R),
@@ -450,6 +548,26 @@ test('op== 8') :-
     eval(as_expr "a", C, R),
     R == undefined.
 
+test('op== 9') :-
+    parse("[a = abstime(\"2012-02\")==abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op== 10') :-
+    parse("[a = abstime(\"2012-02\")==abstime(\"2012-03\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op== 11') :-
+    parse("[a = reltime(\"1h\")==reltime(\"1h\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op== 12') :-
+    parse("[a = reltime(\"2h\")==reltime(\"1h\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
 test('op!= 1') :-
     parse("[a =  1 != 0]", C),
     eval(as_expr "a", C, R),
@@ -469,6 +587,26 @@ test('op!= 4') :-
     parse("[a =  \"a\" != \"a\"]", C),
     eval(as_expr "a", C, R),
     R == false.
+
+test('op!= 5') :-
+    parse("[a = abstime(\"2012-02\")!=abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op!= 6') :-
+    parse("[a = abstime(\"2012-02\")!=abstime(\"2012-03\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op!= 7') :-
+    parse("[a = reltime(\"1h\")!=reltime(\"1h\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op!= 8') :-
+    parse("[a = reltime(\"2h\")!=reltime(\"1h\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
 
 test('op< 1') :-
     parse("[a =  1 < 2]", C),
@@ -490,6 +628,26 @@ test('op< 4') :-
     eval(as_expr "a", C, R),
     R == false.
 
+test('op< 5') :-
+    parse("[a = abstime(\"2012-02\")<abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op< 6') :-
+    parse("[a = abstime(\"2012-02\")<abstime(\"2012-03\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op< 7') :-
+    parse("[a = reltime(\"1h\")<reltime(\"1h\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op< 8') :-
+    parse("[a = reltime(\"1h\")<reltime(\"2h\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
 test('op> 1') :-
     parse("[a =  1 > 0]", C),
     eval(as_expr "a", C, R),
@@ -510,6 +668,26 @@ test('op> 4') :-
     eval(as_expr "a", C, R),
     R == false.
 
+test('op> 5') :-
+    parse("[a = abstime(\"2012-02\")>abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op> 6') :-
+    parse("[a = abstime(\"2012-03\")>abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op> 7') :-
+    parse("[a = reltime(\"1h\")>reltime(\"1h\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op> 8') :-
+    parse("[a = reltime(\"2h\")>reltime(\"1h\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
 test('op<= 1') :-
     parse("[a =  1 <= 2]", C),
     eval(as_expr "a", C, R),
@@ -529,6 +707,26 @@ test('op<= 4') :-
     parse("[a =  \"a\" <= \"b\"]", C),
     eval(as_expr "a", C, R),
     R == true.
+
+test('op<= 5') :-
+    parse("[a = abstime(\"2012-02\")<=abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op<= 6') :-
+    parse("[a = abstime(\"2012-03\")<=abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op<= 7') :-
+    parse("[a = reltime(\"1h\")<=reltime(\"1h\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op<= 8') :-
+    parse("[a = reltime(\"2h\")<=reltime(\"1h\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
 
 test('op<= 5') :-
     parse("[a =  \"a\" <= \"a\"]", C),
@@ -570,6 +768,26 @@ test('op>= 6') :-
     eval(as_expr "a", C, R),
     R == true.
 
+test('op>= 7') :-
+    parse("[a = abstime(\"2012-02\")>=abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op>= 8') :-
+    parse("[a = abstime(\"2012-02\")>=abstime(\"2012-03\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op>= 9') :-
+    parse("[a = reltime(\"1h\")>=reltime(\"1h\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op>= 10') :-
+    parse("[a = reltime(\"1h\")>=reltime(\"2h\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
 test('op=?= 1') :-
     parse("[a = 1 =?= 1]", C),
     eval(as_expr "a", C, R),
@@ -582,6 +800,26 @@ test('op=?= 2') :-
 
 test('op=?= 3') :-
     parse("[a = 1 =?= 2]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op=?= 4') :-
+    parse("[a = abstime(\"2012-02\") =?= abstime(\"2012-02\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op=?= 5') :-
+    parse("[a = abstime(\"2012-02\") =?= abstime(b)]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op=?= 6') :-
+    parse("[a = reltime(\"1s\") =?= reltime(\"1s\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op=?= 7') :-
+    parse("[a = reltime(b) =?= reltime(\"1s\")]", C),
     eval(as_expr "a", C, R),
     R == false.
 
@@ -599,6 +837,26 @@ test('op=!= 3') :-
     parse("[a = 1 =!= 2]", C),
     eval(as_expr "a", C, R),
     R == true.
+
+test('op=!= 4') :-
+    parse("[a = abstime(\"2012-02\") =!= abstime(\"2012-03\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op=!= 5') :-
+    parse("[a = abstime(\"2012-02\") =!= abstime(b)]", C),
+    eval(as_expr "a", C, R),
+    R == false.
+
+test('op=!= 6') :-
+    parse("[a = reltime(\"2s\") =!= reltime(\"1s\")]", C),
+    eval(as_expr "a", C, R),
+    R == true.
+
+test('op=!= 7') :-
+    parse("[a = reltime(b) =!= reltime(\"1s\")]", C),
+    eval(as_expr "a", C, R),
+    R == false.
 
 test('op[] 1') :-
     parse("[a = {1}[0]]", C),
