@@ -5,7 +5,7 @@
 
 :- use_module('../lib/classad_lexer.pl').
 
-:- begin_tests(classad_lexer_ut).
+:- begin_tests(lexer).
 
 test('empty string') :-
     lex("", T),
@@ -83,4 +83,4 @@ test('identifiers') :-
     lex("Scope._CamelCase_Ident", T),
     T == ['scope', '.', '_camelcase_ident'].
 
-:- end_tests(classad_lexer_ut).
+:- end_tests(lexer).

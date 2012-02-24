@@ -6,7 +6,7 @@
 
 :- use_module('../lib/classad_parser.pl').
 
-:- begin_tests(classad_parser_ut).
+:- begin_tests(parser).
 
 test('ident expr') :-
     parse("a", E),
@@ -229,4 +229,4 @@ test('bitwise 1') :-
     parse("x & ~y ^ z | ~w ^ y & z", E),
     E == '|'('^'('&'(x,'~'(y)), z),'^'('~'(w),'&'(y,z))).
 
-:- end_tests(classad_parser_ut).
+:- end_tests(parser).

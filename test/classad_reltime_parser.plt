@@ -3,7 +3,7 @@
 
 :- use_module('../lib/classad_reltime_parser.pl').
 
-:- begin_tests(classad_reltime_parser_ut).
+:- begin_tests(reltime_parser).
 
 test('standard 1') :-
     parse_reltime("1+01:01:01", S),
@@ -45,4 +45,4 @@ test('fail 1', [fail]) :-
     parse_reltime("", _).
 
 
-:- end_tests(classad_reltime_parser_ut).
+:- end_tests(reltime_parser).

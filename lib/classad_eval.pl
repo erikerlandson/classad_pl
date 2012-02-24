@@ -1,5 +1,8 @@
 :- module(classad_eval,
-          [eval/3            % eval(+Expr, +Context, -Result)
+          [eval/3,            % eval(+Expr, +Context, -Result)
+           eval/4,            % eval(+Expr, +Context, +RescopeList, -Result)
+           eval_native/3,     % eval_native(+String, +Context, -Result)
+           eval_native/4      % eval_native(+String, +Context, +RescopeList, -Result)
           ]).
 
 % yap specific: accesses swi date/time manipulation predicates
@@ -16,24 +19,43 @@
 :- use_module(classad_reltime_parser).
 
 
-% Used to denote "parse the following into an expression":
-:- op(20, fx, user:as_expr).
+% Evaluate Expr where Context is given as a 'stack' of contexts:
+eval(Expr, Context, Result) :- context_stack(Context), ev([Context,Expr], [_,Result]), !.
+
+% Evaluate Expr using context of the given classad:
+eval(Expr, Context, Result) :- functor(Context, '[classad]', 1), eval(Expr, [Context], Result), !.
+
+% Parse String as a native syntax classad expression, and evaluate it in Context
+eval_native(String, Context, Result) :- parse(String, Expr), eval(Expr, Context, Result).
+
+eval(Expr, Context, RescopeList, Result) :-
+    rescope_classad(RescopeList, RescopeCA),
+    flatten([Context, RescopeCA], ContextRS),
+    eval(Expr, ContextRS, Result).
+
+eval_native(String, Context, RescopeList, Result) :- parse(String, Expr), eval(Expr, Context, RescopeList, Result).
 
 % Used to keep track of variable "goal stack", for cyclic expr detection:
 :- dynamic evvg/2.
 
-% Parse string S into expression E, then evaluate:
-eval(as_expr S, C, R) :- parse(S, E), eval(E, C, R), !.
-
-% Evaluate E using context of the given classad:
-eval(E, C, R) :- functor(C, '[classad]', 1), eval(E, [C], R), !.
-
-% Evaluate E where C is given as a 'stack' of contexts:
-eval(E, C, R) :- is_list(C), forall(member(X, C), functor(X, '[classad]', 1)), ev([C,E], [_,R]), !.
-
 % other definitions may appear between declarations for ev
 :- discontiguous(ev/2).
 :- discontiguous(evf/2).
+
+% succeeds if argument is a valid context stack
+context_stack([]).
+context_stack(['[classad]'(_) | R]) :- context_stack(R).
+
+% assemble a classad from a list [var1 = classad1, var2 = classad2, ...]
+rescope_classad(RescopeList, '[classad]'(RescopeMap)) :-
+    list_to_assoc([], NewMap),
+    rescope_classad_work(RescopeList, NewMap, RescopeMap).
+rescope_classad_work([], M, M).
+rescope_classad_work(['='(V, CA) | R], IM, OM) :-
+    variable(V), functor(CA, '[classad]', 1),
+    downcase_atom(V, VD),
+    put_assoc(VD, IM, CA, TM),
+    rescope_classad_work(R, TM, OM).
 
 % this will be different on other dialects.
 max_int(Z) :- yap_flag(max_tagged_integer, Z).
