@@ -9,9 +9,13 @@
 :- use_module(classad_lexer).
 
 % lex and parse a string to get an expression list
-parse(S, E) :-
+parse(S, E) :- 
+    is_list(S),
     classad_lexer:lex(S, TL),
     parse_tl(TL, E).
+
+% parse an atom as a char-code string:
+parse(A, E) :- atom(A), atom_codes(A, S), parse(S, E).
 
 % invoke the grammar rule predicates on a token list to get an expr-tree
 parse_tl(TL, E) :- expr(E, TL, []), !.
