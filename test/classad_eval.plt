@@ -78,12 +78,9 @@ test('undefined var 1') :-
 
 test('vars case insensitive 1') :-
     parse("[Abc = 42]", C),
-    eval('abc', C, R1),
-    R1 == 42,
-    eval('Abc', C, R2),
-    R2 == 42,
-    eval('aBc', C, R3),
-    R3 == 42.
+    eval_native("abc", C, 42),
+    eval_native("Abc", C, 42),
+    eval_native("aBc", C, 42).
 
 test('select 1') :-
     parse("[a = [b=0;];]", C),

@@ -17,6 +17,9 @@ parse(S, E) :-
 parse_tl(TL, E) :- expr(E, TL, []), !.
 
 % reserved words in the classad spec
+reserved_word(W) :- reserved_expr(W).
+reserved_word(W) :- reserved_op(W).
+
 reserved_expr(true).
 reserved_expr(false).
 reserved_expr(parent).
@@ -156,4 +159,4 @@ reserved(R) --> [R], { reserved_expr(R) }.
 % numbers, strings, identifiers:
 num(N) --> [N], { number(N) }.
 str(S) --> [S], { S='[str]'(_) }.
-ident(I) --> [I], { atomic(I), \+number(I), \+reserved_expr(I), \+reserved_op(I) }.
+ident(I) --> [I], { atom(I), \+reserved_word(I) }.

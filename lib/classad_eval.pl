@@ -52,8 +52,8 @@ rescope_classad(RescopeList, '[classad]'(RescopeMap)) :-
     rescope_classad_work(RescopeList, NewMap, RescopeMap).
 rescope_classad_work([], M, M).
 rescope_classad_work(['='(V, CA) | R], IM, OM) :-
-    variable(V), functor(CA, '[classad]', 1),
-    downcase_atom(V, VD),
+    atom(V), downcase_atom(V, VD), 
+    variable(VD), functor(CA, '[classad]', 1),
     put_assoc(VD, IM, CA, TM),
     rescope_classad_work(R, TM, OM).
 
@@ -83,7 +83,7 @@ atomic_expr('[reltime]'(_)).
 atomic_expr('[classad]'(_)).
 atomic_expr(error).
 
-variable(V) :- atom(V), V \= [], V \= parent, \+atomic_expr(V).
+variable(V) :- atom(V), V \= [], \+classad_parser:reserved_word(V).
 
 arithmetic_op('+').
 arithmetic_op('-').
@@ -280,9 +280,8 @@ ev([[_C|[CP|CR]], parent], [CR, CP]).
 
 % evaluating a variable:
 ev([[], V], [[],undefined]) :- variable(V).
-ev([[C|P], VC], R) :- 
-    variable(VC), '[classad]'(M)=C,
-    downcase_atom(VC, V),
+ev([[C|P], V], R) :- 
+    variable(V), '[classad]'(M)=C,
     % check for V in the current context:
     (get_assoc(V, M, E),
         % we found V in the current context. check for cyclic dependency:
