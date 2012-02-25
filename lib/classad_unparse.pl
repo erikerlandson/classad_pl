@@ -26,7 +26,19 @@ up(_Lev, _Args, '[reltime]'(S)) :- format("reltime(\""), unparse_reltime(S), for
 
 up(_Lev, _Args, '[abstime]'(S, Z)) :- stamp_date_time(S, DT, Z), format_time(atom(T), "%FT%T.%3f%z", DT), format("reltime(\"~a\")", T).
 
+up(Lev, Args, '[classad]'(M)) :- 
+    assoc_to_list(M, ML),
+    format("["),
+    up_ca_head(Lev, Args, ML),
+    format("]").
+
+up_ca_head(_Lev, _Args, []).
+up_ca_head(Lev, Args, ['-'(V,E)|R]) :- up(Lev, Args, V), format("="), up(Lev, Args, E), up_ca_rest(Lev, Args, R).
+up_ca_rest(_Lev, _Args, []).
+up_ca_rest(Lev, Args, ['-'(V,E)|R]) :- format(";"), up(Lev, Args, V), format("="), up(Lev, Args, E), up_ca_rest(Lev, Args, R).
+
 up(Lev, Args, L) :- is_list(L), format("{"), uphead(Lev, Args, L), format("}").
+
 uphead(_Lev, _Args, []).
 uphead(Lev, Args, [H|R]) :- up(Lev, Args, H), uprest(Lev, Args, R).
 uprest(_Lev, _Args, []).
@@ -55,5 +67,9 @@ unaryop('~').
 unaryop('+').
 unaryop('-').
 
-% functions:
-up(Lev, Args, E) :- E=..[FN, AL], format("~a(", [FN]), uphead(Lev, Args, AL), format(")").
+% anything not matched above is function call:
+up(Lev, Args, E) :- E=..[FN, AL], atom(FN), is_list(AL), format("~a(", [FN]), uphead(Lev, Args, AL), format(")").
+
+% something went off the rails:
+up(_, _, E) :- format("unparse FAILED on: ~q", [E]).
+up(_, _, _) :- format("unparse FAILED").

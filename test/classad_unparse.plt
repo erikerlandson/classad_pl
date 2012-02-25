@@ -54,4 +54,9 @@ test('func-0') :- uptoatom("time ()", 'time()').
 test('func-1') :- uptoatom("fname ( a1 )", 'fname(a1)').
 test('func-2') :- uptoatom("fname ( a1 , v[4+k] )", 'fname(a1,v[(4+k)])').
 
+test('classad-0') :- uptoatom("[]", '[]').
+test('classad-1') :- uptoatom("[z = 42]", '[z=42]').
+test('classad-1b') :- uptoatom("[z = 42;]", '[z=42]').
+test('classad-2') :- uptoatom("[a = 42; q = 6*9]", '[a=42;q=(6*9)]').
+
 :- end_tests(unparse).
