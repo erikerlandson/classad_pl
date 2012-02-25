@@ -9,6 +9,8 @@ unparse(Expr) :- unparse(Expr, []).
 
 unparse(Expr, Args) :- up(0, Args, Expr).
 
+:- discontiguous(up/3).
+
 up(_Lev, _Args, error) :- format("error").
 up(_Lev, _Args, undefined) :- format("undefined").
 up(_Lev, _Args, true) :- format("true").
@@ -30,3 +32,28 @@ uphead(Lev, Args, [H|R]) :- up(Lev, Args, H), uprest(Lev, Args, R).
 uprest(_Lev, _Args, []).
 uprest(Lev, Args, [H|R]) :- format(","), up(Lev, Args, H), uprest(Lev, Args, R).
 
+% define this after unparse for list, because [] is an atom:
+up(_Lev, _Args, V) :- atom(V), format("~a", [V]).
+
+% '?:' trinary op
+up(Lev, Args, '?:'(TE, LE, RE)) :- format("("), up(Lev, Args, TE), format("?"), up(Lev, Args, LE), format(":"), up(Lev, Args, RE), format(")").
+
+% '[]' indexing op
+up(Lev, Args, '[]'(BE, IE)) :- up(Lev, Args, BE), format("["), up(Lev, Args, IE), format("]").
+
+% binary ops
+up(Lev, Args, E) :- E=..[BO, LSE, RSE], opname(BO, BN), format("("), up(Lev, Args, LSE), format("~a",[BN]), up(Lev, Args, RSE), format(")").
+
+% unary ops
+up(Lev, Args, E) :- E=..[UO, SE], unaryop(UO), opname(UO, UN), format("("), format("~a",[UN]), up(Lev, Args, SE), format(")").
+
+opname('[sel]', '.').
+opname(BO, BO).
+
+unaryop('!').
+unaryop('~').
+unaryop('+').
+unaryop('-').
+
+% functions:
+up(Lev, Args, E) :- E=..[FN, AL], format("~a(", [FN]), uphead(Lev, Args, AL), format(")").
