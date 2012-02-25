@@ -34,7 +34,8 @@ unparse_reltime(Seconds) :-
 
 
 % parse a string containing a reltime expression, and return the corresponding number of seconds.
-parse_reltime(RTE, S) :- reltime(S, RTE, []), !.
+parse_reltime(RTE, S) :- is_list(RTE), !, reltime(S, RTE, []), !.
+parse_reltime(RTE, S) :- atom(RTE), !, atom_codes(RTE, CL), reltime(S, CL, []), !.
 
 % consume a reltime expression, and return the corresponding number of seconds
 % a reltime expression consists of a leading sign, day, hour, min, sec fields.  All are optional, however
