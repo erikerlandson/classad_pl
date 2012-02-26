@@ -5,9 +5,9 @@
 
 :- use_module('classad_reltime_parser').
 
-unparse(Expr) :- unparse(Expr, []).
+unparse(Expr) :- unparse(Expr, []), !.
 
-unparse(Expr, Args) :- up(0, Args, Expr).
+unparse(Expr, Args) :- up(0, Args, Expr), !.
 
 :- discontiguous(up/3).
 
@@ -28,14 +28,32 @@ up(_Lev, _Args, '[abstime]'(S, Z)) :- stamp_date_time(S, DT, Z), format_time(ato
 
 up(Lev, Args, '[classad]'(M)) :- 
     assoc_to_list(M, ML),
+    Lev1 is Lev+1,
     format("["),
-    up_ca_head(Lev, Args, ML),
-    format("]").
+    up_ca_head(Lev1, Args, ML),
+    nlindent(Lev, Args),
+    format("]"),
+    ((Lev=<0,member(nl, Args)) -> format("\n") ; true).
 
 up_ca_head(_Lev, _Args, []).
-up_ca_head(Lev, Args, ['-'(V,E)|R]) :- up(Lev, Args, V), format("="), up(Lev, Args, E), up_ca_rest(Lev, Args, R).
+up_ca_head(Lev, Args, ['-'(V,E)|R]) :-
+    nlindent(Lev, Args),
+    up(Lev, Args, V), format("="), up(Lev, Args, E), 
+    up_ca_rest(Lev, Args, R).
+
 up_ca_rest(_Lev, _Args, []).
-up_ca_rest(Lev, Args, ['-'(V,E)|R]) :- format(";"), up(Lev, Args, V), format("="), up(Lev, Args, E), up_ca_rest(Lev, Args, R).
+up_ca_rest(Lev, Args, ['-'(V,E)|R]) :- 
+    format(";"), nlindent(Lev, Args), 
+    up(Lev, Args, V), format("="), up(Lev, Args, E), 
+    up_ca_rest(Lev, Args, R).
+
+nlindent(Lev, Args) :-
+    (member(nl, Args) -> 
+        format("\n"),
+        (member(indent(T), Args) -> 
+            (Tab is T * Lev, tab(Tab)) ; true)
+    ; true).
+    
 
 up(Lev, Args, L) :- is_list(L), format("{"), uphead(Lev, Args, L), format("}").
 
@@ -71,5 +89,5 @@ unaryop('-').
 up(Lev, Args, E) :- E=..[FN, AL], atom(FN), is_list(AL), format("~a(", [FN]), uphead(Lev, Args, AL), format(")").
 
 % something went off the rails:
-up(_, _, E) :- format("unparse FAILED on: ~q", [E]).
-up(_, _, _) :- format("unparse FAILED").
+up(_, _, E) :- format("unparse FAILED on: ~q\,", [E]).
+up(_, _, _) :- format("unparse FAILED\n").
