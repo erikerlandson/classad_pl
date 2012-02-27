@@ -3,6 +3,7 @@
           assign_raw/4,
           assign_native/4,
           assign/4,
+          assign/5,
           lookup_raw/4,
           lookup/3,
           lookup/4
@@ -25,10 +26,8 @@
 % create a new empty classad:
 new_classad('[classad]'(NewMap)) :- list_to_assoc([], NewMap).
 
-% this spans both internal and 'public' formats
 % there is one other type 'novar' that denotes lookup/4 was
 % unable to find the requested variable in the given context
-value_type(as(_, _), promote).
 value_type(I, integer) :- integer(I).
 value_type(R, real) :- float(R).
 value_type(N, number) :- number(N).  % this one is bound-Type checking only
@@ -39,14 +38,26 @@ value_type(undefined, undefined).
 value_type([], list).
 value_type([_|_], list).
 value_type('[str]'(_), string).
-value_type(S, string) :- atom(S).
 value_type('[abstime]'(_,_), abstime).
-value_type(abstime(_,_), abstime).
-value_type(date(_,_,_,_,_,_,_,_,_), abstime).
 value_type('[reltime]'(_), reltime).
-value_type(reltime(_), reltime).
 value_type('[classad]'(_), classad).
 value_type(_, badtype).
+
+value_type_in(I, integer) :- integer(I).
+value_type_in(R, real) :- float(R).
+value_type_in(N, number) :- number(N).  % this one is bound-Type checking only
+value_type_in(true, boolean).
+value_type_in(false, boolean).
+value_type_in(error, error).
+value_type_in(undefined, undefined).
+value_type_in([], list).
+value_type_in([_|_], list).
+value_type_in(S, string) :- atom(S).
+value_type_in(abstime(_,_), abstime).
+value_type_in(date(_,_,_,_,_,_,_,_,_), abstime).
+value_type_in(reltime(_), reltime).
+value_type_in('[classad]'(_), classad).
+value_type_in(_, badtype).
 
 assign_raw(Var, Expr, '[classad]'(Map), '[classad]'(MapR)) :-
     atom(Var), downcase_atom(Var, VarD), 
@@ -60,8 +71,16 @@ assign_raw(Var, Expr, [C|R], [NC|R]) :-
 assign_native(Var, String, Classad, ClassadR) :-
     parse(String, Expr), assign_raw(Var, Expr, Classad, ClassadR).
 
-assign(Var, Value, Classad, ClassadR) :-
-    value_type(Value, Type),
+assign(Var, Value, Classad, ClassadR) :- assign(Var, Value, Classad, ClassadR, _Type).
+
+assign(Var, Value, Classad, ClassadR, Type) :-
+    ground(Type), as(AsType) = Type,
+    value_type_in(Value, T),
+    promote_in(T, AsType, Value, V),
+    assign_raw(Var, V, Classad, ClassadR).
+
+assign(Var, Value, Classad, ClassadR, Type) :-
+    value_type_in(Value, Type),
     internal_val(Type, Value, Expr),
     assign_raw(Var, Expr, Classad, ClassadR).
 
@@ -77,7 +96,7 @@ lookup_raw(Var, Context, Expr, VarContext) :-
     (functor(Context, '[classad]', 1) ; classad_eval:context_stack(Context)),
     (lookup_context(VarD, Context, Expr, VarContext) ; (Expr='[noexpr]', VarContext=[])).
 
-lookup(Var, Context, Result) :- lookup(Var, Context, Result, _).
+lookup(Var, Context, Result) :- lookup(Var, Context, Result, _Type).
 
 lookup(Var, Context, Result, Type) :-
     ground(Type), as(AsType) = Type,
@@ -93,6 +112,7 @@ lookup(Var, Context, Result, Type) :-
 
 internal_val(integer, I, I).
 internal_val(real, R, R).
+internal_val(number, N, N).
 internal_val(boolean, B, B).
 internal_val(error, E, E).
 internal_val(undefined, U, U).
@@ -105,11 +125,8 @@ internal_val(abstime, Date, '[abstime]'(TS, Z)) :-
     date_time_value(utc_offset, Date, Z).
 internal_val(reltime, reltime(T), '[reltime]'(T)).
 internal_val(classad, C, C).
-internal_val(promote, as(string, CL), S) :- is_list(CL), atom_codes(S, CL).
-internal_val(promote, as(reltime, S), '[reltime]'(S)) :- number(S).
-internal_val(promote, as(abstime, S), '[abstime]'(S, Z)) :- number(S), classad_eval:local_tzo(Z).
 
-iv_traverse(V, E) :- value_type(V, T), internal_val(T, V, E).
+iv_traverse(V, E) :- value_type_in(V, T), internal_val(T, V, E).
 
 external_val('[str]'(S), S).
 external_val('[abstime]'(S, Z), abstime(S, Z)).
@@ -143,3 +160,12 @@ promote(integer, date, S, Date) :- classad_eval:local_tzo(Z), stamp_date_time(S,
 promote(real, date, S, Date) :- classad_eval:local_tzo(Z), stamp_date_time(S, Date, Z).
 
 promote(string, codelist, SA, CL) :- atom_codes(SA, CL).
+
+
+promote_in(list, string, CL, '[str]'(S)) :- atom_codes(S, CL).
+
+promote_in(integer, reltime, S, '[reltime]'(S)).
+promote_in(real, reltime, S, '[reltime]'(S)).
+
+promote_in(integer, abstime, S, '[abstime]'(S, Z)) :- classad_eval:local_tzo(Z).
+promote_in(real, abstime, S, '[abstime]'(S, Z)) :- classad_eval:local_tzo(Z).

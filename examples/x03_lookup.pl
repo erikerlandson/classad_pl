@@ -11,45 +11,63 @@ report(V, Val, Type) :- print(V), print('= '), print(Val), print('  type= '), pr
 :-
 new_classad(CA0),
 
+%%%%%%%%%
+% specifying Type argument to require an input type:
+
+% assign a boolean, requiring it to be boolean:
+assign(b1, true, CA0, CA1, boolean),
+
+% assign an integer, and require it to be an number (integer or float):
+assign(i1, 99, CA1, CA2, number),
+
+% requiring a string here will fail:
+(assign(i2, 999, CA2, _, string); (print('requiring a string is terrible fail'), nl)),
+
+
+%%%%%%%%
+% using as(Type) to manipulate input:
+
 % assign a char-code list as a string:
-assign(str1, as(string, "string!"), CA0, CA1),
+assign(str1, "string!", CA2, CA3, as(string)),
 
 % assign a number as a reltime value, interpreting as seconds:
-assign(rt1, as(reltime, 3600), CA1, CA2),
+assign(rt1, 3600, CA3, CA4, as(reltime)),
 
 % assign a number as an abstime val, interpreting as seconds from epoch:
-assign(at1, as(abstime, 1330097876.0), CA2, CA3),
-
-% assign a boolean
-assign(b1, true, CA3, CA4),
-
-% assign an integer
-assign(i1, 99, CA4, CA5),
+assign(at1, 1330097876.0, CA4, CA5, as(abstime)),
 
 % use CA for lookup
 CA = CA5,
 
-% By default, strings are returned as atoms.
-% Pass in as(codelist) for Type, to lookup a string as a char-code list:
-lookup(str1, CA, R1, as(codelist)), report(str1, R1, 'as a code list'),
 
-% lookup an abstime value as a date/9 tuple:
-lookup(at1, CA, R2, as(date)), report(at1, R2, 'as a date/9 term'),
-
-% lookup a reltime value as a real value:
-lookup(rt1, CA, R3, as(real)), report(rt1, R3, 'as a real'),
-
-% lookup a boolean value as an integer:
-lookup(b1, CA, R4, as(integer)), report(b1, R4, 'as an integer'),
+%%%%%%%
+% specifying that a lookup value must be a particular type:
 
 % specify that the value must be of type integer:
-lookup(i1, CA, R5, integer), report(i1, R5, 'required integer'),
+lookup(i1, CA, R1, integer), report(i1, R1, 'required integer'),
 
 % attempting to specify wrong type will cause failure
-(lookup(i1, CA, _R6, string) ; (print('epic fail requiring string'), nl)),
+(lookup(i1, CA, _R2, string) ; (print('epic fail requiring string'), nl)),
 
 % requiring type 'number' will accept either integer or real:
-lookup(i1, CA, R5, number), report(i1, R5, 'required number'),
+lookup(i1, CA, R3, number), report(i1, R3, 'required number'),
+
+
+%%%%%%%
+% using as(Type) to manipulate output:
+
+% By default, strings are returned as atoms.
+% Pass in as(codelist) for Type, to lookup a string as a char-code list:
+lookup(str1, CA, R4, as(codelist)), report(str1, R4, 'as a code list'),
+
+% lookup an abstime value as a date/9 tuple:
+lookup(at1, CA, R5, as(date)), report(at1, R5, 'as a date/9 term'),
+
+% lookup a reltime value as a real value:
+lookup(rt1, CA, R6, as(real)), report(rt1, R6, 'as a real'),
+
+% lookup a boolean value as an integer:
+lookup(b1, CA, R7, as(integer)), report(b1, R7, 'as an integer'),
 
 % end example
 true.
