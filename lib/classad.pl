@@ -1,12 +1,19 @@
 :- module(classad, [
-          new_classad/1,     % new_classad(-Classad)
+          is_classad/1,
+          new_classad/1,
+
           assign_raw/4,
           assign_native/4,
           assign/4,
           assign/5,
+
           lookup_raw/4,
           lookup/3,
-          lookup/4
+          lookup/4,
+
+          serialize/2,
+          serialize/3,
+          deserialize/2
           ]).
 
 % yap specific: accesses swi date/time manipulation predicates
@@ -22,9 +29,13 @@
 :- use_module(classad_parser).
 :- use_module(classad_reltime_parser).
 :- use_module(classad_eval).
+:- use_module(classad_unparse).
 
 % create a new empty classad:
 new_classad('[classad]'(NewMap)) :- list_to_assoc([], NewMap).
+
+is_classad('[classad]'(M)) :- is_assoc(M).
+
 
 % there is one other type 'novar' that denotes lookup/4 was
 % unable to find the requested variable in the given context
@@ -169,3 +180,31 @@ promote_in(real, reltime, S, '[reltime]'(S)).
 
 promote_in(integer, abstime, S, '[abstime]'(S, Z)) :- classad_eval:local_tzo(Z).
 promote_in(real, abstime, S, '[abstime]'(S, Z)) :- classad_eval:local_tzo(Z).
+
+
+serialize(Stream, Classad) :- !, serialize(Stream, Classad, [nl, indent(4)]).
+serialize(Stream, Classad, Args) :- !, is_stream(Stream), with_output_to(Stream, unparse(Classad, Args)).
+
+deserialize(Stream, '[classad]'(M)) :-
+    !,
+    is_stream(Stream),
+    \+at_end_of_stream(Stream),
+    stream_position(Stream, P0),
+    (load_classad_block(Stream, String) ; (set_stream_position(Stream, P0), fail)),
+    (parse(String, '[classad]'(M)); (set_stream_position(Stream, P0), fail)), !.
+
+load_classad_block(Stream, String) :-
+    get(Stream, 91),
+    lcb_work(1, Stream, [91], String).
+
+lcb_work(0, _Stream, Str, Str).
+lcb_work(Lev, Stream, StrI, StrO) :-
+    get0(Stream, C), C >= 0,
+    ((C == 93) ->
+        (LevN is Lev-1)
+    ; ((C == 91) ->
+        (LevN is Lev+1)
+    ;
+        (LevN is Lev))),
+    append(StrI, [C], StrT),
+    lcb_work(LevN, Stream, StrT, StrO).
