@@ -19,6 +19,8 @@
           classad_deserialize/2
           ]).
 
+:- reexport(classad_eval).
+
 % yap specific: accesses swi date/time manipulation predicates
 :- expects_dialect(swi).
 
@@ -32,7 +34,6 @@
 :- use_module(with_input_from).
 :- use_module(classad_parser).
 :- use_module(classad_reltime_parser).
-:- use_module(classad_eval).
 :- use_module(classad_unparse).
 
 % create a new empty classad:

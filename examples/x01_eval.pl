@@ -1,4 +1,8 @@
-:- use_module('../lib/classad_eval.pl').
+% This example demonstrates the evaluation semantic for classad
+% expressions, using eval_native predicate:
+
+:- add_to_path('../lib').
+:- use_module(classad).
 
 :- % create a simple classad C1 defining variables x and a:
    eval_native("[x = other.a < a;  a = 69]", [], C1),

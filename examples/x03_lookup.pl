@@ -1,9 +1,9 @@
 % This example demonstrates some additional features of assign and lookup
 % that give you more control of classad input and output.
 
-% use the classad and classad_eval modules for this example:
-:- use_module('../lib/classad.pl').
-:- use_module('../lib/classad_eval.pl').
+% use the classad module for this example:
+:- add_to_path('../lib').
+:- use_module(classad).
 
 % a utility for expediting output reporting
 report(V, Val, Type) :- print(V), print('= '), print(Val), print('  type= '), print(Type), nl.
