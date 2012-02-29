@@ -38,7 +38,7 @@ classad_assign(rt1, reltime(60), CA6, CA7),
 classad_assign(list1, [77, 2.718, 'Pebbles', ['Bam Bam']], CA7, CA8),
 
 % create a classad by parsing a native classad expr:
-eval_native('[x = 555 + 111]', [], TCA),
+classad_eval_native('[x = 555 + 111]', [], TCA),
 % assign the classad expr:
 classad_assign(ca1, TCA, CA8, CA9),
 

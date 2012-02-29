@@ -126,7 +126,7 @@ classad_lookup(Var, Context, Result, Type) :- !,
     ((Expr == '[noexpr]') -> 
         (Result = undefined, Type = novar)
      ;
-        (eval(Expr, ExprContext, R), value_type(R, Type), external_val(R, Result))).
+        (classad_eval(Expr, ExprContext, R), value_type(R, Type), external_val(R, Result))).
 
 internal_val(integer, I, I).
 internal_val(real, R, R).

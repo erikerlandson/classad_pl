@@ -1,8 +1,8 @@
 :- module(classad_eval,
-          [eval/3,            % eval(+Expr, +Context, -Result)
-           eval/4,            % eval(+Expr, +Context, +RescopeList, -Result)
-           eval_native/3,     % eval_native(+String, +Context, -Result)
-           eval_native/4      % eval_native(+String, +Context, +RescopeList, -Result)
+          [classad_eval/3,            % classad_eval(+Expr, +Context, -Result)
+           classad_eval/4,            % classad_eval(+Expr, +Context, +RescopeList, -Result)
+           classad_eval_native/3,     % classad_eval_native(+String, +Context, -Result)
+           classad_eval_native/4      % classad_eval_native(+String, +Context, +RescopeList, -Result)
           ]).
 
 % yap specific: accesses swi date/time manipulation predicates
@@ -20,20 +20,24 @@
 
 
 % Evaluate Expr where Context is given as a 'stack' of contexts:
-eval(Expr, Context, Result) :- context_stack(Context), ev([Context,Expr], [_,Result]), !.
+classad_eval(Expr, Context, Result) :- context_stack(Context), !,
+    ev([Context,Expr], [_,Result]), !.
 
 % Evaluate Expr using context of the given classad:
-eval(Expr, Context, Result) :- functor(Context, '[classad]', 1), eval(Expr, [Context], Result), !.
+classad_eval(Expr, Context, Result) :- functor(Context, '[classad]', 1), !,
+    classad_eval(Expr, [Context], Result).
 
 % Parse String as a native syntax classad expression, and evaluate it in Context
-eval_native(String, Context, Result) :- parse(String, Expr), eval(Expr, Context, Result).
+classad_eval_native(String, Context, Result) :- !,
+    parse(String, Expr), classad_eval(Expr, Context, Result).
 
-eval(Expr, Context, RescopeList, Result) :-
+classad_eval(Expr, Context, RescopeList, Result) :- !,
     rescope_classad(RescopeList, RescopeCA),
     flatten([Context, RescopeCA], ContextRS),
-    eval(Expr, ContextRS, Result).
+    classad_eval(Expr, ContextRS, Result).
 
-eval_native(String, Context, RescopeList, Result) :- parse(String, Expr), eval(Expr, Context, RescopeList, Result).
+classad_eval_native(String, Context, RescopeList, Result) :- !,
+    parse(String, Expr), classad_eval(Expr, Context, RescopeList, Result).
 
 % Used to keep track of variable "goal stack", for cyclic expr detection:
 :- dynamic evvg/2.
