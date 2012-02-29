@@ -2,18 +2,21 @@
           is_classad/1,
           new_classad/1,
 
-          assign_raw/4,
-          assign_native/4,
-          assign/4,
-          assign/5,
+          classad_assign_raw/4,
+          classad_assign_native/4,
+          classad_assign/4,
+          classad_assign/5,
 
-          lookup_raw/4,
-          lookup/3,
-          lookup/4,
+          classad_lookup_raw/4,
+          classad_lookup/3,
+          classad_lookup/4,
 
-          serialize/2,
-          serialize/3,
-          deserialize/2
+          classad_serialize/1,
+          classad_serialize/2,
+          classad_serialize/3,
+
+          classad_deserialize/1,
+          classad_deserialize/2
           ]).
 
 % yap specific: accesses swi date/time manipulation predicates
@@ -26,6 +29,7 @@
 :- use_module(library(date)).
 
 % classad libs:
+:- use_module(with_input_from).
 :- use_module(classad_parser).
 :- use_module(classad_reltime_parser).
 :- use_module(classad_eval).
@@ -70,52 +74,54 @@ value_type_in(reltime(_), reltime).
 value_type_in('[classad]'(_), classad).
 value_type_in(_, badtype).
 
-assign_raw(Var, Expr, '[classad]'(Map), '[classad]'(MapR)) :-
+classad_assign_raw(Var, Expr, '[classad]'(Map), '[classad]'(MapR)) :- !,
     atom(Var), downcase_atom(Var, VarD), 
     classad_eval:variable(VarD),
     put_assoc(VarD, Map, Expr, MapR).
 
-assign_raw(Var, Expr, [C|R], [NC|R]) :-
+classad_assign_raw(Var, Expr, [C|R], [NC|R]) :- !,
     classad_eval:context_stack([C|R]),
-    assign_raw(Var, Expr, C, NC).
+    classad_assign_raw(Var, Expr, C, NC).
 
-assign_native(Var, String, Classad, ClassadR) :-
-    parse(String, Expr), assign_raw(Var, Expr, Classad, ClassadR).
+classad_assign_native(Var, String, Classad, ClassadR) :- !,
+    parse(String, Expr), classad_assign_raw(Var, Expr, Classad, ClassadR).
 
-assign(Var, Value, Classad, ClassadR) :- assign(Var, Value, Classad, ClassadR, _Type).
+classad_assign(Var, Value, Classad, ClassadR) :- !,
+    classad_assign(Var, Value, Classad, ClassadR, _Type).
 
-assign(Var, Value, Classad, ClassadR, Type) :-
-    ground(Type), as(AsType) = Type,
+classad_assign(Var, Value, Classad, ClassadR, Type) :-
+    ground(Type), as(AsType) = Type, !,
     value_type_in(Value, T),
     promote_in(T, AsType, Value, V),
-    assign_raw(Var, V, Classad, ClassadR).
+    classad_assign_raw(Var, V, Classad, ClassadR).
 
-assign(Var, Value, Classad, ClassadR, Type) :-
+classad_assign(Var, Value, Classad, ClassadR, Type) :- !,
     value_type_in(Value, Type),
     internal_val(Type, Value, Expr),
-    assign_raw(Var, Expr, Classad, ClassadR).
+    classad_assign_raw(Var, Expr, Classad, ClassadR).
 
-lookup_context(Var, [C|R], Expr, Context) :-
+lookup_context(Var, [C|R], Expr, Context) :- !,
     C = '[classad]'(Map),
     get_assoc(Var, Map, Expr) -> Context = [C|R] ; lookup_context(Var, R, Expr, Context).
 
-lookup_context(Var, '[classad]'(Map), Expr, ['[classad]'(Map)]) :-
+lookup_context(Var, '[classad]'(Map), Expr, ['[classad]'(Map)]) :- !,
     get_assoc(Var, Map, Expr).
 
-lookup_raw(Var, Context, Expr, VarContext) :-
+classad_lookup_raw(Var, Context, Expr, VarContext) :- !,
     atom(Var), downcase_atom(Var, VarD),
     (functor(Context, '[classad]', 1) ; classad_eval:context_stack(Context)),
     (lookup_context(VarD, Context, Expr, VarContext) ; (Expr='[noexpr]', VarContext=[])).
 
-lookup(Var, Context, Result) :- lookup(Var, Context, Result, _Type).
+classad_lookup(Var, Context, Result) :- !,
+    classad_lookup(Var, Context, Result, _Type).
 
-lookup(Var, Context, Result, Type) :-
-    ground(Type), as(AsType) = Type,
-    lookup(Var, Context, R, T),
+classad_lookup(Var, Context, Result, Type) :-
+    ground(Type), as(AsType) = Type, !,
+    classad_lookup(Var, Context, R, T),
     promote(T, AsType, R, Result).
 
-lookup(Var, Context, Result, Type) :-
-    lookup_raw(Var, Context, Expr, ExprContext),
+classad_lookup(Var, Context, Result, Type) :- !,
+    classad_lookup_raw(Var, Context, Expr, ExprContext),
     ((Expr == '[noexpr]') -> 
         (Result = undefined, Type = novar)
      ;
@@ -182,24 +188,32 @@ promote_in(integer, abstime, S, '[abstime]'(S, Z)) :- classad_eval:local_tzo(Z).
 promote_in(real, abstime, S, '[abstime]'(S, Z)) :- classad_eval:local_tzo(Z).
 
 
-serialize(Stream, Classad) :- !, serialize(Stream, Classad, [nl, indent(4)]).
-serialize(Stream, Classad, Args) :- !, is_stream(Stream), with_output_to(Stream, unparse(Classad, Args)).
+classad_serialize(Classad) :- !, classad_serialize(Classad, [nl, indent(4)]).
 
-deserialize(Stream, '[classad]'(M)) :-
-    !,
-    is_stream(Stream),
-    \+at_end_of_stream(Stream),
-    stream_position(Stream, P0),
-    (load_classad_block(Stream, String) ; (set_stream_position(Stream, P0), fail)),
-    (parse(String, '[classad]'(M)); (set_stream_position(Stream, P0), fail)), !.
+classad_serialize(Stream, Classad, Args) :- is_stream(Stream), !,
+    with_output_to(Stream, classad_serialize(Classad, Args)).
 
-load_classad_block(Stream, String) :-
-    get(Stream, 91),
-    lcb_work(1, Stream, [91], String).
+classad_serialize(Stream, Classad) :- is_stream(Stream), !,
+    with_output_to(Stream, classad_serialize(Classad)).
 
-lcb_work(0, _Stream, Str, Str).
-lcb_work(Lev, Stream, StrI, StrO) :-
-    get0(Stream, C), C >= 0,
+classad_serialize('[classad]'(M), Args) :- !, is_list(Args), unparse('[classad]'(M), Args).
+
+classad_deserialize(Stream, Classad) :- is_stream(Stream), !,
+    with_input_from(Stream, classad_deserialize(Classad)).
+
+classad_deserialize('[classad]'(M)) :- !,
+    \+at_end_of_stream,
+    stream_position(P0),
+    (load_classad_block(String) ; (set_stream_position(P0), fail)),
+    (parse(String, '[classad]'(M)); (set_stream_position(P0), fail)).
+
+load_classad_block(String) :-
+    get(91),
+    lcb_work(1, [91], String).
+
+lcb_work(0, Str, Str).
+lcb_work(Lev, StrI, StrO) :- !,
+    get0(C), C >= 0,
     ((C == 93) ->
         (LevN is Lev-1)
     ; ((C == 91) ->
@@ -207,4 +221,4 @@ lcb_work(Lev, Stream, StrI, StrO) :-
     ;
         (LevN is Lev))),
     append(StrI, [C], StrT),
-    lcb_work(LevN, Stream, StrT, StrO).
+    lcb_work(LevN, StrT, StrO).
