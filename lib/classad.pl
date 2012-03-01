@@ -10,6 +10,7 @@
           classad_lookup_raw/4,
           classad_lookup/3,
           classad_lookup/4,
+          classad_lookup/5,
 
           classad_serialize/1,
           classad_serialize/2,
@@ -108,25 +109,46 @@ lookup_context(Var, [C|R], Expr, Context) :- !,
 lookup_context(Var, '[classad]'(Map), Expr, ['[classad]'(Map)]) :- !,
     get_assoc(Var, Map, Expr).
 
-classad_lookup_raw(Var, Context, Expr, VarContext) :- !,
-    atom(Var), downcase_atom(Var, VarD),
-    (functor(Context, '[classad]', 1) ; classad_eval:context_stack(Context)),
+classad_lookup_raw(Var, Context, Expr, VarContext) :-
+    atom(Var), is_context(Context), !,
+    downcase_atom(Var, VarD), 
     (lookup_context(VarD, Context, Expr, VarContext) ; (Expr='[noexpr]', VarContext=[])).
 
-classad_lookup(Var, Context, Result) :- !,
-    classad_lookup(Var, Context, Result, _Type).
+classad_lookup(Var, Context, Result) :-
+    atom(Var), is_context(Context), !,
+    classad_lookup(Var, Context, Result, _Type), !.
+
+classad_lookup(Var, Context, RescopeList, Result) :-
+    atom(Var), is_context(Context), is_rescope_list(RescopeList), !,
+    classad_lookup(Var, Context, RescopeList, Result, _Type), !.
 
 classad_lookup(Var, Context, Result, Type) :-
+    atom(Var), is_context(Context), 
     ground(Type), as(AsType) = Type, !,
     classad_lookup(Var, Context, R, T),
-    promote(T, AsType, R, Result).
+    promote(T, AsType, R, Result), !.
 
-classad_lookup(Var, Context, Result, Type) :- !,
+classad_lookup(Var, Context, Result, Type) :-
+    atom(Var), is_context(Context), !,
     classad_lookup_raw(Var, Context, Expr, ExprContext),
     ((Expr == '[noexpr]') -> 
         (Result = undefined, Type = novar)
      ;
-        (classad_eval(Expr, ExprContext, R), value_type(R, Type), external_val(R, Result))).
+        (classad_eval(Expr, ExprContext, R), value_type(R, Type), external_val(R, Result))), !.
+
+classad_lookup(Var, Context, RescopeList, Result, Type) :-
+    atom(Var), is_context(Context), is_rescope_list(RescopeList),
+    ground(Type), as(AsType) = Type, !,
+    classad_lookup(Var, Context, RescopeList, R, T),
+    promote(T, AsType, R, Result), !.
+
+classad_lookup(Var, Context, RescopeList, Result, Type) :- 
+    atom(Var), is_context(Context), is_rescope_list(RescopeList), !,
+    classad_lookup_raw(Var, Context, Expr, ExprContext),
+    ((Expr == '[noexpr]') -> 
+        (Result = undefined, Type = novar)
+     ;
+        (classad_eval(Expr, ExprContext, RescopeList, R), value_type(R, Type), external_val(R, Result))), !.
 
 internal_val(integer, I, I).
 internal_val(real, R, R).

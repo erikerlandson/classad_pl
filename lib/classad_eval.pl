@@ -2,7 +2,10 @@
           [classad_eval/3,            % classad_eval(+Expr, +Context, -Result)
            classad_eval/4,            % classad_eval(+Expr, +Context, +RescopeList, -Result)
            classad_eval_native/3,     % classad_eval_native(+String, +Context, -Result)
-           classad_eval_native/4      % classad_eval_native(+String, +Context, +RescopeList, -Result)
+           classad_eval_native/4,     % classad_eval_native(+String, +Context, +RescopeList, -Result)
+           is_context/1,
+           is_rescope_list/1,
+           rescope_classad/2
           ]).
 
 % yap specific: accesses swi date/time manipulation predicates
@@ -47,8 +50,14 @@ classad_eval_native(String, Context, RescopeList, Result) :- !,
 :- discontiguous(evf/2).
 
 % succeeds if argument is a valid context stack
-context_stack([]).
-context_stack(['[classad]'(_) | R]) :- context_stack(R).
+context_stack(L) :- ground(L), L == []. 
+context_stack(['[classad]'(_) | R]) :- context_stack(R), !.
+
+is_context('[classad]'(_)).
+is_context(Stack) :- context_stack(Stack), !.
+
+is_rescope_list(L) :- ground(L), L == [].
+is_rescope_list(['='(V, C)|R]) :- atom(V), is_context(C), is_rescope_list(R), !.
 
 % assemble a classad from a list [var1 = classad1, var2 = classad2, ...]
 rescope_classad(RescopeList, '[classad]'(RescopeMap)) :-
