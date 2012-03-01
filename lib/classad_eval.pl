@@ -25,16 +25,16 @@ classad_eval(Expr, Context, Result) :- context_stack(Context), !,
 
 % Evaluate Expr using context of the given classad:
 classad_eval(Expr, Context, Result) :- functor(Context, '[classad]', 1), !,
-    classad_eval(Expr, [Context], Result).
+    classad_eval(Expr, [Context], Result), !.
 
 % Parse String as a native syntax classad expression, and evaluate it in Context
-classad_eval_native(String, Context, Result) :- !,
-    parse(String, Expr), classad_eval(Expr, Context, Result).
+classad_eval_native(String, Context, Result) :-
+    parse(String, Expr), classad_eval(Expr, Context, Result), !.
 
-classad_eval(Expr, Context, RescopeList, Result) :- !,
+classad_eval(Expr, Context, RescopeList, Result) :-
     rescope_classad(RescopeList, RescopeCA),
     flatten([Context, RescopeCA], ContextRS),
-    classad_eval(Expr, ContextRS, Result).
+    classad_eval(Expr, ContextRS, Result), !.
 
 classad_eval_native(String, Context, RescopeList, Result) :- !,
     parse(String, Expr), classad_eval(Expr, Context, RescopeList, Result).
@@ -53,13 +53,44 @@ context_stack(['[classad]'(_) | R]) :- context_stack(R).
 % assemble a classad from a list [var1 = classad1, var2 = classad2, ...]
 rescope_classad(RescopeList, '[classad]'(RescopeMap)) :-
     list_to_assoc([], NewMap),
-    rescope_classad_work(RescopeList, NewMap, RescopeMap).
+    rescope_classad_work(RescopeList, NewMap, RescopeMap), !.
 rescope_classad_work([], M, M).
-rescope_classad_work(['='(V, CA) | R], IM, OM) :-
+rescope_classad_work(['='(V, Context) | R], IM, OM) :-
     atom(V), downcase_atom(V, VD), 
-    variable(VD), functor(CA, '[classad]', 1),
-    put_assoc(VD, IM, CA, TM),
-    rescope_classad_work(R, TM, OM).
+    variable(VD),
+    rescope_stack(VD, Context, Sel, Var, ClassadRS),
+    compose_sel(Sel, SelExpr),
+    (atom(SelExpr) -> 
+        put_assoc(VD, IM, ClassadRS, TM)
+     ;
+        (put_assoc(VD, IM, SelExpr, TM2),
+         put_assoc(Var, TM2, ClassadRS, TM))),
+    rescope_classad_work(R, TM, OM), !.
+
+% no empty list
+compose_sel([V], V).
+compose_sel([V|R], E) :- compose_sel_work(R, V, E), !.
+
+compose_sel_work([], E, E).
+compose_sel_work([V|R], LE, E) :-
+    compose_sel_work(R, '[sel]'(LE, V), E), !.
+
+% no empty stacks by internal convention
+rescope_stack(Var, '[classad]'(M), SE, V, CA) :-
+    rescope_stack_work(0, Var, ['[classad]'(M)], SE, V, CA), !.
+rescope_stack(Var, Stack, SE, V, CA) :-
+    reverse(Stack, StackR),
+    rescope_stack_work(0, Var, StackR, SE, V, CA), !.
+
+% this assumes stack has been reversed from normal convention 
+% (so last element of list is innermost-context)
+rescope_stack_work(Lev, Var, [CA], [V], V, CA) :-
+    with_output_to(atom(V), format("___~a_~d___", [Var, Lev])), !.
+rescope_stack_work(Lev, Var, ['[classad]'(M)|[H|R]], [VarCA|SelT], VarCA, '[classad]'(MRS)) :-
+    LevT is Lev+1,
+    rescope_stack_work(LevT, Var, [H|R], SelT, VarCAT, CAT),
+    with_output_to(atom(VarCA), format("___~a_~d___", [Var, Lev])),
+    put_assoc(VarCAT, M, CAT, MRS), !.
 
 % this will be different on other dialects.
 max_int(Z) :- yap_flag(max_tagged_integer, Z).

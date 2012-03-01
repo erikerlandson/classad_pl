@@ -223,3 +223,5 @@ lcb_work(Lev, StrI, StrO) :- !,
         (LevN is Lev))),
     append(StrI, [C], StrT),
     lcb_work(LevN, StrT, StrO).
+
+
