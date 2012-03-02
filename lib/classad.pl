@@ -176,7 +176,9 @@ external_val('[reltime]'(S), reltime(S)).
 external_val(L, EL) :- is_list(L), maplist(external_val, L, EL).
 external_val(E, E).
 
-promote(integer, integer, V, V).
+% identity promotions:
+promote(Type, Type, V, V).
+
 promote(real, integer, V, P) :- P is integer(V).
 promote(reltime, integer, reltime(S), P) :- P is integer(S).
 promote(abstime, integer, abstime(S, _Z), P) :- P is integer(S).
@@ -184,7 +186,6 @@ promote(boolean, integer, true, 1).
 promote(boolean, integer, false, 0).
 
 promote(integer, real, V, P) :- P is float(V). 
-promote(real, real, V, V).
 promote(reltime, real, reltime(S), P) :- P is float(S).
 promote(abstime, real, abstime(S, _Z), P) :- P is float(S).
 promote(boolean, real, true, 1.0).
@@ -203,6 +204,9 @@ promote(real, date, S, Date) :- classad_eval:local_tzo(Z), stamp_date_time(S, Da
 
 promote(string, codelist, SA, CL) :- atom_codes(SA, CL).
 
+
+% identity promotions:
+promote_in(Type, Type, V, V).
 
 promote_in(list, string, CL, '[str]'(S)) :- atom_codes(S, CL).
 
@@ -254,8 +258,8 @@ eqpair(A, '='(A,A)) :- !.
 
 classad_match(ContextL, ContextR, '='(VarL, VarR), '='(RSVL, RSVR)) :-
     atom(VarL), atom(VarR), atom(RSVL), atom(RSVR), is_context(ContextL), is_context(ContextR), !,
-    classad_lookup(VarL, ContextL, [RSVL=ContextR], true, boolean),
-    classad_lookup(VarR, ContextR, [RSVR=ContextL], true, boolean), !.
+    classad_lookup(VarL, ContextL, [RSVL=ContextR], true, as(boolean)),
+    classad_lookup(VarR, ContextR, [RSVR=ContextL], true, as(boolean)), !.
 
 classad_match(ContextL, ContextR, Var, RSV) :- 
     eqpair(Var, VarP), eqpair(RSV, RSVP), !,
