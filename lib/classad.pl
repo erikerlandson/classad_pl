@@ -17,7 +17,9 @@
           classad_serialize/3,
 
           classad_deserialize/1,
-          classad_deserialize/2
+          classad_deserialize/2,
+
+          classad_match/4
           ]).
 
 :- reexport(classad_eval).
@@ -247,3 +249,14 @@ lcb_work(Lev, StrI, StrO) :- !,
     lcb_work(LevN, StrT, StrO).
 
 
+eqpair('='(A,B), '='(A,B)) :- !.
+eqpair(A, '='(A,A)) :- !.
+
+classad_match(ContextL, ContextR, '='(VarL, VarR), '='(RSVL, RSVR)) :-
+    atom(VarL), atom(VarR), atom(RSVL), atom(RSVR), is_context(ContextL), is_context(ContextR), !,
+    classad_lookup(VarL, ContextL, [RSVL=ContextR], true, boolean),
+    classad_lookup(VarR, ContextR, [RSVR=ContextL], true, boolean), !.
+
+classad_match(ContextL, ContextR, Var, RSV) :- 
+    eqpair(Var, VarP), eqpair(RSV, RSVP), !,
+    classad_match(ContextL, ContextR, VarP, RSVP), !.
