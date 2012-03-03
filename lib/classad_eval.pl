@@ -475,8 +475,8 @@ ev([C, FE], [RC, R]) :-
 
 % strict functions: propagate error/undefined in the function arg list
 evfc([C, FN, AL], [RC, R]) :- 
-    strict_function(FN),
-    ((((\+arg_format(FN, AL)) ; member(error, AL)), RC = C, R = error)
+    strict_function(FN, MinA, MaxA),
+    (((wrong_arg_count(AL, MinA, MaxA) ; member(error, AL)), RC = C, R = error)
     ;
     (member(undefined, AL), RC = C, R = undefined)
     ;
@@ -486,18 +486,12 @@ evfc([C, FN, AL], [RC, R]) :-
 evfc([C, FN, AL], [RC, R]) :- evf([C, FN, AL], [RC, R]).
 
 % define functions with strict argument semantics:
-strict_function(time).
-strict_function(abstime).
-strict_function(reltime).
-strict_function(interval).
+strict_function(time, 0, 0).
+strict_function(abstime, 0, 2).
+strict_function(reltime, 1, 1).
+strict_function(interval, 1, 1).
 
-% these define legal argument formats for given functions
-arg_format(time, []). 
-arg_format(abstime, []).
-arg_format(abstime, [_]).
-arg_format(abstime, [_,_]).
-arg_format(reltime, [_]).
-arg_format(interval, [_]).
+wrong_arg_count(AL, MinA, MaxA) :- length(AL, Len), (Len < MinA ; MaxA < Len). 
 
 % function time()
 evf([C, time, []], [C, R]) :- get_time(T), R is integer(T).
