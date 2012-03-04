@@ -5,7 +5,9 @@
            classad_eval_native/4,     % classad_eval_native(+String, +Context, +RescopeList, -Result)
            is_context/1,
            is_rescope_list/1,
-           rescope_classad/2
+           rescope_classad/2,
+           classad_register_function/2,
+           classad_register_function/3
           ]).
 
 % yap specific: accesses swi date/time manipulation predicates
@@ -44,6 +46,10 @@ classad_eval_native(String, Context, RescopeList, Result) :- !,
 
 % Used to keep track of variable "goal stack", for cyclic expr detection:
 :- dynamic evvg/2.
+
+% these can be updated by registration of functions:
+:- dynamic registered_function/2.
+:- dynamic strict_function/3.
 
 % other definitions may appear between declarations for ev
 :- discontiguous(ev/2).
@@ -485,31 +491,59 @@ evfc([C, FN, AL], [RC, R]) :-
 % non-strict functions are fall-thru
 evfc([C, FN, AL], [RC, R]) :- evf([C, FN, AL], [RC, R]).
 
-% define functions with strict argument semantics:
-strict_function(time, 0, 0).
-strict_function(abstime, 0, 2).
-strict_function(reltime, 1, 1).
-strict_function(interval, 1, 1).
+% registered functions
+evf([C, FN, AL], [C, R]) :- registered_function(FN, MapFN), call(MapFN, AL, R).
+
+% anything else evaluates to error:
+evf([C, _, _], [C, error]).
 
 wrong_arg_count(AL, MinA, MaxA) :- length(AL, Len), (Len < MinA ; MaxA < Len). 
 
+:- meta_predicate classad_register_function(+, :).
+:- meta_predicate classad_register_function(+, :, +).
+
+classad_register_function(NativeName, PredicateName) :-
+    atom(NativeName), downcase_atom(NativeName, NativeNameD),
+    assert(registered_function(NativeNameD, PredicateName)).
+
+classad_register_function(NativeName, PredicateName, strict(ArgMin, ArgMax)) :-
+    integer(ArgMin), integer(ArgMax), ArgMin >= 0, ArgMax >= ArgMin,
+    atom(NativeName), downcase_atom(NativeName, NativeNameD),
+    assert(registered_function(NativeNameD, PredicateName)),
+    assert(strict_function(NativeNameD, ArgMin, ArgMax)).
+
+classad_register_function(NativeName, PredicateName, strict(ArgMax)) :-
+    integer(ArgMax), ArgMax >= 0,
+    atom(NativeName), downcase_atom(NativeName, NativeNameD),
+    assert(registered_function(NativeNameD, PredicateName)),
+    assert(strict_function(NativeNameD, 0, ArgMax)).
+
+classad_register_function(NativeName, PredicateName, strict) :-
+    atom(NativeName), downcase_atom(NativeName, NativeNameD),
+    assert(registered_function(NativeNameD, PredicateName)),
+    assert(strict_function(NativeNameD, 0, 1000000000)).
+
 % function time()
-evf([C, time, []], [C, R]) :- get_time(T), R is integer(T).
+f_time([], R) :- get_time(T), R is integer(T).
+:- classad_register_function(time, f_time, strict(0)).
 
 % function abstime() 
-evf([C, abstime, []], [C, '[abstime]'(T,Z)]) :- get_time(T), local_tzo(Z).
-evf([C, abstime, [T,Z]], [C, '[abstime]'(T,WZ)]) :- number(T), integer(Z), WZ is -Z.
-evf([C, abstime, [T]], [C, '[abstime]'(T,Z)]) :- number(T), local_tzo(Z).
-evf([C, abstime, ['[str]'(TS)]], [C, '[abstime]'(T,Z)]) :- parse_time(TS, T), local_tzo(Z).
+f_abstime([], '[abstime]'(T,Z)) :- get_time(T), local_tzo(Z).
+f_abstime([T,Z], '[abstime]'(T,WZ)) :- number(T), integer(Z), WZ is -Z.
+f_abstime([T], '[abstime]'(T,Z)) :- number(T), local_tzo(Z).
+f_abstime(['[str]'(TS)], '[abstime]'(T,Z)) :- parse_time(TS, T), local_tzo(Z).
+:- classad_register_function(abstime, f_abstime, strict(2)).
+
 local_tzo(Z) :- stamp_date_time(0, DT, local), date_time_value(utc_offset, DT, Z).
 
-evf([C, reltime, ['[str]'(TA)]], [C, '[reltime]'(S)]) :- atom_codes(TA, TS), parse_reltime(TS, S).
-evf([C, reltime, [S]], [C, '[reltime]'(S)]) :- number(S).
+f_reltime(['[str]'(TA)], '[reltime]'(S)) :- atom_codes(TA, TS), parse_reltime(TS, S).
+f_reltime([S], '[reltime]'(S)) :- number(S).
+:- classad_register_function(reltime, f_reltime, strict(1, 1)).
 
-evf([C, interval, [S]], [C, '[str]'(SS)]) :- number(S), with_output_to(atom(SS), unparse_reltime(S)).
+f_interval([S], '[str]'(SS)) :- number(S), with_output_to(atom(SS), unparse_reltime(S)).
+:- classad_register_function(interval, f_interval, strict(1,1)).
 
 % This is a catchall - has to be declared last.
 % TODO: consider some other special error value for this,
 % or perhaps throwing an exception.
 ev([C, _], [C, error]).
-evf([C, _, _], [C, error]).
