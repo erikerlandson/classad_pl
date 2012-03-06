@@ -33,6 +33,7 @@ test('classad_assign/4-1') :-
     assoc_to_list(M, [xx-0]).
 
 test('classad_assign/3-1') :-
+    classad_eval_native("[z=1]", [], CAZ),
     new_classad(CA0),
     classad_assign([x1 = error,
                     x2 = undefined,
@@ -40,7 +41,8 @@ test('classad_assign/3-1') :-
                     x4 = 3.14,
                     x5 = 'A String',
                     x6 = ['a', ['list']],
-                    x7 = true
+                    x7 = true,
+                    x8 = CAZ
                     ],
                    CA0, '[classad]'(M)),
     assoc_to_list(M,
@@ -50,7 +52,9 @@ test('classad_assign/3-1') :-
                    x4-3.14,
                    x5-'[str]'('A String'),
                    x6-['[str]'(a),['[str]'(list)]],
-                   x7-true]).
+                   x7-true,
+                   x8-'[classad]'(MZ)]),
+    assoc_to_list(MZ, [z-1]).
 
 test('classad_assign/3-time') :-
     new_classad(CA0),
