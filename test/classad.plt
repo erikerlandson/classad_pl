@@ -84,4 +84,50 @@ test('classad_assign/3-mixed') :-
                    x4-false,
                    x5-'[str]'('String')]).
 
+test('classad_assign/3-qtype') :-
+    classad_eval_native("[z=1]", [], CAZ),
+    new_classad(CA0),
+    classad_assign([[x1, error, T1],
+                    [x2, undefined, T2],
+                    [x3, 42, T3],
+                    [x4, 3.14, T4],
+                    [x5, 'A String', T5],
+                    [x6, ['a', ['list']], T6],
+                    [x7, true, T7],
+                    [x8, CAZ, T8],
+                    [x9, abstime(0,0), T9],
+                    [x10, reltime(0), T10]
+                    ],
+                   CA0, _CA),
+    T1 == error,
+    T2 == undefined,
+    T3 == integer,
+    T4 == real,
+    T5 == string,
+    T6 == list,
+    T7 == boolean,
+    T8 == classad,
+    T9 == abstime,
+    T10 == reltime.
+
+test('classad_assign/3-ftype') :-
+    classad_eval_native("[z=1]", [], CAZ),
+    new_classad(CA0),
+    classad_assign([[x1, error, error],
+                    [x2, undefined, undefined],
+                    [x3, 42, integer],
+                    [x4, 3.14, real],
+                    [x5, 'A String', string],
+                    [x6, ['a', ['list']], list],
+                    [x7, true, boolean],
+                    [x8, CAZ, classad],
+                    [x9, abstime(0,0), abstime],
+                    [x10, reltime(0), reltime]
+                    ],
+                   CA0, _CA).
+
+test('classad_assign/3-ftype-fail') :-
+    new_classad(CA0),
+    \+classad_assign([[x1, 42, list]], CA0, _CA).
+
 :- end_tests(classad).
