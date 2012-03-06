@@ -499,6 +499,7 @@ evf([C, _, _], [C, error]).
 
 wrong_arg_count(AL, MinA, MaxA) :- length(AL, Len), (Len < MinA ; MaxA < Len). 
 
+% 2nd argument needs to be scoped to calling module:
 :- meta_predicate classad_register_function(+, :).
 :- meta_predicate classad_register_function(+, :, +).
 

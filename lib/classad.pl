@@ -4,6 +4,7 @@
 
           classad_assign_raw/4,
           classad_assign_native/4,
+          classad_assign/3,
           classad_assign/4,
           classad_assign/5,
 
@@ -87,11 +88,22 @@ classad_assign_raw(Var, Expr, [C|R], [NC|R]) :- !,
     classad_eval:context_stack([C|R]),
     classad_assign_raw(Var, Expr, C, NC).
 
-classad_assign_native(Var, String, Classad, ClassadR) :- !,
-    parse(String, Expr), classad_assign_raw(Var, Expr, Classad, ClassadR).
+classad_assign_native(Var, String, Classad, ClassadR) :-
+    parse(String, Expr), classad_assign_raw(Var, Expr, Classad, ClassadR), !.
 
-classad_assign(Var, Value, Classad, ClassadR) :- !,
-    classad_assign(Var, Value, Classad, ClassadR, _Type).
+classad_assign([], CA, CA).
+classad_assign(['='(Var, Value)|R], Classad, ClassadR) :-
+    classad_assign(Var, Value, Classad, ClassadT, _Type),
+    classad_assign(R, ClassadT, ClassadR), !.
+classad_assign([[Var, Value]|R], Classad, ClassadR) :-
+    classad_assign(Var, Value, Classad, ClassadT, _Type),
+    classad_assign(R, ClassadT, ClassadR), !.
+classad_assign([[Var, Value, Type]|R], Classad, ClassadR) :-
+    classad_assign(Var, Value, Classad, ClassadT, Type),
+    classad_assign(R, ClassadT, ClassadR), !.
+
+classad_assign(Var, Value, Classad, ClassadR) :-
+    classad_assign(Var, Value, Classad, ClassadR, _Type), !.
 
 classad_assign(Var, Value, Classad, ClassadR, Type) :-
     ground(Type), as(AsType) = Type, !,
