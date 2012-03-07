@@ -9,6 +9,7 @@
           classad_assign/5,
 
           classad_lookup_raw/4,
+          classad_lookup/2,
           classad_lookup/3,
           classad_lookup/4,
           classad_lookup/5,
@@ -79,54 +80,76 @@ value_type_in(reltime(_), reltime).
 value_type_in('[classad]'(_), classad).
 value_type_in(_, badtype).
 
-classad_assign_raw(Var, Expr, '[classad]'(Map), '[classad]'(MapR)) :- !,
+classad_assign_raw(Var, Expr, '[classad]'(Map), '[classad]'(MapR)) :-
     atom(Var), downcase_atom(Var, VarD), 
     classad_eval:variable(VarD),
-    put_assoc(VarD, Map, Expr, MapR).
+    put_assoc(VarD, Map, Expr, MapR), !.
 
-classad_assign_raw(Var, Expr, [C|R], [NC|R]) :- !,
+classad_assign_raw(Var, Expr, [C|R], [NC|R]) :-
     classad_eval:context_stack([C|R]),
-    classad_assign_raw(Var, Expr, C, NC).
+    classad_assign_raw(Var, Expr, C, NC), !.
 
-classad_assign_native(Var, String, Classad, ClassadR) :-
-    parse(String, Expr), classad_assign_raw(Var, Expr, Classad, ClassadR), !.
+classad_assign_native(Var, String, Context, ContextR) :-
+    parse(String, Expr), classad_assign_raw(Var, Expr, Context, ContextR), !.
 
-classad_assign([], CA, CA).
-classad_assign(['='(Var, Value)|R], Classad, ClassadR) :-
-    classad_assign(Var, Value, Classad, ClassadT, _Type),
-    classad_assign(R, ClassadT, ClassadR), !.
-classad_assign([[Var, Value]|R], Classad, ClassadR) :-
-    classad_assign(Var, Value, Classad, ClassadT, _Type),
-    classad_assign(R, ClassadT, ClassadR), !.
-classad_assign([[Var, Value, Type]|R], Classad, ClassadR) :-
-    classad_assign(Var, Value, Classad, ClassadT, Type),
-    classad_assign(R, ClassadT, ClassadR), !.
+classad_assign([], Context, Context).
+classad_assign(['='(Var, Value)|R], Context, ContextR) :-
+    classad_assign(Var, Value, Context, ContextT, _Type),
+    classad_assign(R, ContextT, ContextR), !.
+classad_assign([[Var, Value]|R], Context, ContextR) :-
+    classad_assign(Var, Value, Context, ContextT, _Type),
+    classad_assign(R, ContextT, ContextR), !.
+classad_assign([[Var, Value, Type]|R], Context, ContextR) :-
+    classad_assign(Var, Value, Context, ContextT, Type),
+    classad_assign(R, ContextT, ContextR), !.
 
-classad_assign(Var, Value, Classad, ClassadR) :-
-    classad_assign(Var, Value, Classad, ClassadR, _Type), !.
+classad_assign(Var, Value, Context, ContextR) :-
+    classad_assign(Var, Value, Context, ContextR, _Type), !.
 
-classad_assign(Var, Value, Classad, ClassadR, Type) :-
+classad_assign(Var, Value, Context, ContextR, Type) :-
     ground(Type), as(AsType) = Type, !,
     value_type_in(Value, T),
     promote_in(T, AsType, Value, V),
-    classad_assign_raw(Var, V, Classad, ClassadR).
+    classad_assign_raw(Var, V, Context, ContextR), !.
 
-classad_assign(Var, Value, Classad, ClassadR, Type) :- !,
+classad_assign(Var, Value, Context, ContextR, Type) :-
     value_type_in(Value, Type),
     internal_val(Type, Value, Expr),
-    classad_assign_raw(Var, Expr, Classad, ClassadR).
+    classad_assign_raw(Var, Expr, Context, ContextR), !.
 
-lookup_context(Var, [C|R], Expr, Context) :- !,
-    C = '[classad]'(Map),
-    get_assoc(Var, Map, Expr) -> Context = [C|R] ; lookup_context(Var, R, Expr, Context).
+lookup_context(Var, [C|R], Expr, Context) :-
+    C = '[classad]'(Map), !,
+    get_assoc(Var, Map, Expr) -> Context = [C|R] ; lookup_context(Var, R, Expr, Context), !.
 
-lookup_context(Var, '[classad]'(Map), Expr, ['[classad]'(Map)]) :- !,
-    get_assoc(Var, Map, Expr).
+lookup_context(Var, '[classad]'(Map), Expr, ['[classad]'(Map)]) :-
+    get_assoc(Var, Map, Expr), !.
 
 classad_lookup_raw(Var, Context, Expr, VarContext) :-
     atom(Var), is_context(Context), !,
     downcase_atom(Var, VarD), 
-    (lookup_context(VarD, Context, Expr, VarContext) ; (Expr='[noexpr]', VarContext=[])).
+    (lookup_context(VarD, Context, Expr, VarContext) ; (Expr='[noexpr]', VarContext=[])), !.
+
+classad_lookup(Context, []) :- is_context(Context), !.
+classad_lookup(Context, ['='(Var, Result)|R]) :-
+    classad_lookup(Var, Context, Result),
+    classad_lookup(Context, R), !.
+classad_lookup(Context, [[Var, Result]|R]) :-
+    classad_lookup(Var, Context, Result),
+    classad_lookup(Context, R), !.
+classad_lookup(Context, [[Var, Result, Type]|R]) :-
+    classad_lookup(Var, Context, Result, Type),
+    classad_lookup(Context, R), !.
+
+classad_lookup(Context, RescopeList, []) :- is_context(Context), is_rescope_list(RescopeList), !.
+classad_lookup(Context, RescopeList, ['='(Var, Result)|R]) :-
+    classad_lookup(Var, Context, RescopeList, Result),
+    classad_lookup(Context, RescopeList, R), !.
+classad_lookup(Context, RescopeList, [[Var, Result]|R]) :-
+    classad_lookup(Var, Context, RescopeList, Result),
+    classad_lookup(Context, RescopeList, R), !.
+classad_lookup(Context, RescopeList, [[Var, Result, Type]|R]) :-
+    classad_lookup(Var, Context, RescopeList, Result, Type),
+    classad_lookup(Context, RescopeList, R), !.
 
 classad_lookup(Var, Context, Result) :-
     atom(Var), is_context(Context), !,
@@ -220,6 +243,12 @@ promote(string, codelist, SA, CL) :- atom_codes(SA, CL).
 % identity promotions:
 promote_in(Type, Type, V, V).
 
+promote_in(integer, real, V, R) :- R is float(V).
+promote_in(real, integer, V, R) :- R is integer(V).
+
+promote_in(integer, number, V, V).
+promote_in(real, number, V, V).
+
 promote_in(list, string, CL, '[str]'(S)) :- atom_codes(S, CL).
 
 promote_in(integer, reltime, S, '[reltime]'(S)).
@@ -235,18 +264,18 @@ classad_serialize(Stream, Classad, Args) :- is_stream(Stream), !,
     with_output_to(Stream, classad_serialize(Classad, Args)).
 
 classad_serialize(Stream, Classad) :- is_stream(Stream), !,
-    with_output_to(Stream, classad_serialize(Classad)).
+    with_output_to(Stream, classad_serialize(Classad)), !.
 
-classad_serialize('[classad]'(M), Args) :- !, is_list(Args), unparse('[classad]'(M), Args).
+classad_serialize('[classad]'(M), Args) :- is_list(Args), !, unparse('[classad]'(M), Args), !.
 
 classad_deserialize(Stream, Classad) :- is_stream(Stream), !,
-    with_input_from(Stream, classad_deserialize(Classad)).
+    with_input_from(Stream, classad_deserialize(Classad)), !.
 
-classad_deserialize('[classad]'(M)) :- !,
+classad_deserialize('[classad]'(M)) :-
     \+at_end_of_stream,
     stream_position(P0),
     (load_classad_block(String) ; (set_stream_position(P0), fail)),
-    (parse(String, '[classad]'(M)); (set_stream_position(P0), fail)).
+    (parse(String, '[classad]'(M)); (set_stream_position(P0), fail)), !.
 
 load_classad_block(String) :-
     get(91),

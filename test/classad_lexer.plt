@@ -3,7 +3,8 @@
 
 :- use_module(library(lists)).
 
-:- use_module('../lib/classad_lexer.pl').
+:- add_to_path('../lib').
+:- use_module(classad_lexer).
 
 :- begin_tests(lexer).
 

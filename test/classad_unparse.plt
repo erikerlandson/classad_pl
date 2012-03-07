@@ -1,5 +1,6 @@
-:- use_module('../lib/classad_unparse.pl').
-:- use_module('../lib/classad_parser.pl').
+:- add_to_path('../lib').
+:- use_module(classad_unparse).
+:- use_module(classad_parser).
 
 :- use_module(library(debug)).
 :- use_module(library(plunit)).

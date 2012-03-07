@@ -1,4 +1,5 @@
-:- use_module('../lib/classad.pl').
+:- add_to_path('../lib').
+:- use_module(classad).
 
 :- use_module(library(debug)).
 :- use_module(library(plunit)).
@@ -30,6 +31,11 @@ test('classad_assign_native-1') :-
 test('classad_assign/4-1') :-
     new_classad(CA0),
     classad_assign(xX, 0, CA0, '[classad]'(M)),
+    assoc_to_list(M, [xx-0]).
+
+test('classad_assign/4-context') :-
+    new_classad(CA0),
+    classad_assign(xX, 0, [CA0], ['[classad]'(M)]),
     assoc_to_list(M, [xx-0]).
 
 test('classad_assign/3-1') :-
@@ -129,5 +135,106 @@ test('classad_assign/3-ftype') :-
 test('classad_assign/3-ftype-fail') :-
     new_classad(CA0),
     \+classad_assign([[x1, 42, list]], CA0, _CA).
+
+test('classad_assign/3-promotions') :-
+    classad_eval:local_tzo(Z),
+    new_classad(CA0),
+    classad_assign([[x1, "a string", as(string)],
+                    [x2, 60, as(reltime)],
+                    [x3, 1.5, as(reltime)],
+                    [x4, 1330089151, as(abstime)],
+                    [x5, 1330089151.5, as(abstime)],
+                    [x6, 1, as(real)],
+                    [x7, 1, as(number)],
+                    [x8, 1, as(integer)],
+                    [x9, 1.0, as(real)],
+                    [x91, 1.0, as(integer)],
+                    [x92, 1.0, as(number)]
+                   ], CA0, '[classad]'(M)),
+    assoc_to_list(M, [x1-'[str]'('a string'),
+                      x2-'[reltime]'(60),
+                      x3-'[reltime]'(1.5),
+                      x4-'[abstime]'(1330089151, Z),
+                      x5-'[abstime]'(1330089151.5, Z),
+                      x6-1.0,
+                      x7-1,
+                      x8-1,
+                      x9-1.0,
+                      x91-1,
+                      x92-1.0
+                    ]).
+
+test('classad_lookup/3-1') :-
+    new_classad(CA0),
+    classad_assign(x, 'fred', CA0, CA),
+    classad_lookup(x, CA, 'fred').
+
+test('classad_lookup/4-qtype') :-
+    new_classad(CA0),
+    classad_assign(v, false, CA0, CA),
+    classad_lookup(v, CA, false, T),
+    T == boolean.
+
+test('classad_lookup/4-qtype-novar') :-
+    new_classad(CA0),
+    classad_assign(v, false, CA0, CA),
+    classad_lookup(x, CA, undefined, T),
+    T == novar.
+
+test('classad_lookup/4-ftype') :-
+    new_classad(CA0),
+    classad_assign(v, false, CA0, CA),
+    classad_lookup(v, CA, false, boolean),
+    \+classad_lookup(v, CA, false, list).
+
+test('classad_lookup/3-context') :-
+    classad_eval_native("[pi=3.14]", [], C),
+    classad_eval_native("[r=2; a=pi*r*r]", [], CA),
+    classad_lookup(a, [CA, C], 12.56).
+
+test('classad_lookup/4-rescope') :-
+    classad_eval_native("[x = 5]", [], O),
+    classad_eval_native("[x = 4; b = x < other.x]", [], CA),
+    classad_lookup(b, CA, [other=O], true).
+
+test('classad_lookup/5-qtype') :-
+    classad_eval_native("[x = 5]", [], O),
+    classad_eval_native("[x = 4; b = x < other.x]", [], CA),
+    classad_lookup(b, CA, [other=O], Val, Type),
+    Val == true, Type == boolean.
+
+test('classad_lookup/5-ftype') :-
+    classad_eval_native("[x = 5]", [], O),
+    classad_eval_native("[x = 4; b = x < other.x]", [], CA),
+    classad_lookup(b, CA, [other=O], true, boolean),
+    \+classad_lookup(b, CA, [other=O], true, string).
+
+test('classad_lookup/2-1') :-
+    classad_eval_native("[z=1]", [], CAZ),
+    new_classad(CA0),
+    classad_assign([[x1, error],
+                    [x2, undefined],
+                    [x3, 42],
+                    [x4, 3.14],
+                    [x5, 'A String'],
+                    [x6, ['a', ['list']]],
+                    [x7, true],
+                    [x8, CAZ],
+                    [x9, abstime(0,0)],
+                    [x10, reltime(0)]
+                    ],
+                   CA0, CA),
+    classad_lookup(CA,
+                   [[x1, error],
+                    [x2, undefined],
+                    [x3, 42],
+                    [x4, 3.14],
+                    [x5, 'A String'],
+                    [x6, ['a', ['list']]],
+                    [x7, true],
+                    [x8, CAZ],
+                    [x9, abstime(0,0)],
+                    [x10, reltime(0)]
+                    ]).
 
 :- end_tests(classad).

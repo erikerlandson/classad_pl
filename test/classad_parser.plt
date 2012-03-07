@@ -4,7 +4,8 @@
 :- use_module(library(lists)).
 :- use_module(library(assoc)).
 
-:- use_module('../lib/classad_parser.pl').
+:- add_to_path('../lib').
+:- use_module(classad_parser).
 
 :- begin_tests(parser).
 
