@@ -233,6 +233,12 @@ promote(abstime, number, abstime(S, _Z), S).
 promote(boolean, number, true, 1).
 promote(boolean, number, false, 0).
 
+promote(integer, abstime, S, abstime(S, Z)) :- classad_eval:local_tzo(Z).
+promote(real, abstime, S, abstime(S, Z)) :- classad_eval:local_tzo(Z).
+
+promote(integer, reltime, S, reltime(S)).
+promote(real, reltime, S, reltime(S)).
+
 promote(abstime, date, abstime(S, Z), Date) :- stamp_date_time(S, Date, Z).
 promote(integer, date, S, Date) :- classad_eval:local_tzo(Z), stamp_date_time(S, Date, Z).
 promote(real, date, S, Date) :- classad_eval:local_tzo(Z), stamp_date_time(S, Date, Z).
