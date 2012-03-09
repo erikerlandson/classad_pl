@@ -6,7 +6,10 @@
 :- use_module(library(lists)).
 :- use_module(library(assoc)).
 
+:- use_module(classad_eval, [classad_eval/3]).
 :- use_module(classad_lexer).
+
+:- dynamic macro_context/1.
 
 % lex and parse a string to get an expression list
 parse(S, E) :- 
@@ -18,7 +21,7 @@ parse(S, E) :-
 parse(A, E) :- atom(A), !, atom_codes(A, S), parse(S, E).
 
 % invoke the grammar rule predicates on a token list to get an expr-tree
-parse_tl(TL, E) :- expr(E, TL, []), !.
+parse_tl(TL, E) :- call_cleanup(expr(E, TL, []), retractall(macro_context(_))), !.
 
 % reserved words in the classad spec
 reserved_word(W) :- reserved_expr(W).
@@ -125,6 +128,7 @@ selref('parent') --> ['parent'].
 % fun fact: abstime and reltime literals are not part of the grammar.
 atomic(E) --> classad(E).
 atomic(E) --> list(E).
+atomic(E) --> macro(E).
 atomic(E) --> func(E).
 atomic(E) --> paren(E).
 atomic(E) --> reserved(E).
@@ -134,12 +138,18 @@ atomic(E) --> ident(E).
 
 % a classad is a sequence of assignments: var = expr; (last ';' optional)
 % I load these into an association list from the standard assoc library
-classad('[classad]'(Mo)) --> ['['], { list_to_assoc([], Mi) }, assignseq(Mi, Mo), [']'].
+classad('[classad]'(Mo)) --> ['['], 
+    { list_to_assoc([], Mi), push_macro_context }, 
+    assignseq(Mi, Mo), 
+    [']'],
+    { pop_macro_context }.
+
+
 assignseq(Mi, Mo) --> assign(Mi, Mt), assignrest(Mt, Mo).
 assignseq(M, M) --> [].
 assignrest(Mi, Mo) --> [';'], assignseq(Mi, Mo).
 assignrest(M, M) --> [].
-assign(Mi, Mo) --> ident(V), ['='], expr(E), { put_assoc(V, Mi, E, Mo) }.
+assign(Mi, Mo) --> ident(V), ['='], expr(E), { put_assoc(V, Mi, E, Mo), update_macro_context(Mo) }.
 
 % a list is a comma-separated sequence of expressions between {}.
 list(E) --> ['{'], exprseq(E), ['}'].
@@ -164,3 +174,28 @@ reserved(R) --> [R], { reserved_expr(R) }.
 num(N) --> [N], { number(N) }.
 str(S) --> [S], { S='[str]'(_) }.
 ident(I) --> [I], { atom(I), \+reserved_word(I) }.
+
+% macro eval:
+macro(E) --> ['$'], ident(V), {
+    (macro_context(C) ; C = []),
+    classad_eval(V, C, E)
+    }.
+
+ensure_macro_context :- macro_context(_) ; assert(macro_context([])).
+
+push_macro_context :-
+    ensure_macro_context,
+    macro_context(C),
+    retract(macro_context(C)),
+    list_to_assoc([], M),
+    assert(macro_context(['[classad]'(M)|C])).
+
+pop_macro_context :-
+    macro_context([H|R]),
+    retract(macro_context([H|R])),
+    assert(macro_context(R)).
+
+update_macro_context(M) :-
+    macro_context([H|R]),
+    retract(macro_context([H|R])),
+    assert(macro_context(['[classad]'(M)|R])).
