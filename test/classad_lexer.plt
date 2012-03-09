@@ -84,4 +84,16 @@ test('identifiers') :-
     lex("Scope._CamelCase_Ident", T),
     T == ['scope', '.', '_camelcase_ident'].
 
+test('whitespace nl and comments') :-
+    lex("
+        x  # left operand
+        +  # operator
+        y  # right operand
+        ",
+        ['x', '+', 'y']).
+
+test('string variations') :-
+    lex("'single \"quote\" string'\"double 'quote' string\"",
+        ['[str]'('single "quote" string'), '[str]'('double \'quote\' string')]).
+
 :- end_tests(lexer).

@@ -7,21 +7,34 @@
 % invoke the grammar rule predicates on a string to get a token list
 lex(S, TL) :- tokseq(TL, S, []), !.
 
-wstype(white).
-wstype(end_of_line).
 
-% The top level of the lexing grammar: parse a
-% sequence of tokens out of a prolog string.
-% a whitespace char is just consumed, and adds nothing
-% to the token list: 
+% The top level of the lexing grammar: parse a sequence of tokens out of a prolog string.
+
+% a whitespace char is just consumed, and adds nothing to the token list: 
 tokseq(L) --> wschar, tokseq(L).
+
+% comments are consumed without adding to token list
+tokseq(L) --> comment, tokseq(L).
+
 % if you consume a token add it to the list:
 tokseq([T|R]) --> tok(T), tokseq(R).
+
 % basis case: nothing but empty string is left:
 tokseq([]) --> "".
 
+
 % consume a whitespace character:
-wschar --> [C], {char_type(C,T), wstype(T)}.
+wschar --> " ".
+wschar --> "\t".
+wschar --> "\n".
+wschar --> "\r".
+
+
+% consume comments to end of line:
+comment --> "#", comment_rest.
+comment_rest --> "\n".
+comment_rest --> [_], comment_rest. 
+
 
 % strings are tokens
 % put this expansion rule first, since we want anything starting with
@@ -44,12 +57,15 @@ tok(T) --> sym(T).
 
 
 % expansion of string tokens
-str('[str]'(A)) --> "\"", strseq(SS), "\"", {atom_codes(A, SS)}.
+str('[str]'(A)) --> "\"", strdqrest(SS), { atom_codes(A, SS) }.
+str('[str]'(A)) --> "'", strsqrest(SS), { atom_codes(A, SS) }.
 
-strseq([C|R]) --> regchar(C), strseq(R).
-strseq([]) --> "".
+strdqrest([]) --> "\"".
+strdqrest([C|R]) --> [C], strdqrest(R).
 
-regchar(C) --> [C], { [C]\="\"", char_type(C, ascii) }.
+strsqrest([]) --> "'".
+strsqrest([C|R]) --> [C], strsqrest(R).
+
 
 % expansion of identifier tokens
 % identifiers are case insensitive in classad spec, so I just casefold them here.
