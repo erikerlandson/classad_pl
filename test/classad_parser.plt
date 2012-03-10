@@ -230,4 +230,17 @@ test('bitwise 1') :-
     parse("x & ~y ^ z | ~w ^ y & z", E),
     E == '|'('^'('&'(x,'~'(y)), z),'^'('~'(w),'&'(y,z))).
 
+test('macro-1') :-
+    parse("[x=1; y=$x; x=2; z=$x;]", '[classad]'(M)),
+    assoc_to_list(M, [x-2, y-1, z-2]).
+
+test('macro-2') :-
+    parse("[x=1; y=$x; x=2; z=$(x+y)]", '[classad]'(M)),
+    assoc_to_list(M, [x-2, y-1, z-3]).
+
+test('macro-3') :-
+    parse("[x=1; y=$x; x=2; ca=[x=4; z=$(x+y)]; z=$(x+y);]", '[classad]'(M)),
+    assoc_to_list(M, [ca-'[classad]'(M2), x-2, y-1, z-3]),
+    assoc_to_list(M2, [x-4, z-5]).
+
 :- end_tests(parser).
