@@ -8,8 +8,8 @@
 :- use_module(library(date)).
 
 :- add_to_path('../lib').
-:- use_module(classad_parser).
 :- use_module(classad_eval).
+:- use_module(classad_parser).
 
 local_tzo(Z) :- stamp_date_time(0, DT, local), date_time_value(utc_offset, DT, Z).
 

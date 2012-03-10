@@ -25,6 +25,7 @@
           ]).
 
 :- reexport(classad_eval).
+:- reexport(classad_parser, [classad_eval_native/3, classad_eval_native/4]).
 
 % yap specific: accesses swi date/time manipulation predicates
 :- expects_dialect(swi).

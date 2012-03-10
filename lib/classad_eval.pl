@@ -1,8 +1,6 @@
 :- module(classad_eval,
           [classad_eval/3,            % classad_eval(+Expr, +Context, -Result)
            classad_eval/4,            % classad_eval(+Expr, +Context, +RescopeList, -Result)
-           classad_eval_native/3,     % classad_eval_native(+String, +Context, -Result)
-           classad_eval_native/4,     % classad_eval_native(+String, +Context, +RescopeList, -Result)
            is_context/1,
            is_rescope_list/1,
            rescope_classad/2,
@@ -20,7 +18,7 @@
 :- use_module(library(date)).
 
 % classad libs:
-:- use_module(classad_parser).
+:- use_module(classad_common).
 :- use_module(classad_reltime_parser).
 
 
@@ -32,17 +30,10 @@ classad_eval(Expr, Context, Result) :- context_stack(Context), !,
 classad_eval(Expr, Context, Result) :- functor(Context, '[classad]', 1), !,
     classad_eval(Expr, [Context], Result), !.
 
-% Parse String as a native syntax classad expression, and evaluate it in Context
-classad_eval_native(String, Context, Result) :-
-    parse(String, Expr), classad_eval(Expr, Context, Result), !.
-
 classad_eval(Expr, Context, RescopeList, Result) :-
     rescope_classad(RescopeList, RescopeCA),
     flatten([Context, RescopeCA], ContextRS),
     classad_eval(Expr, ContextRS, Result), !.
-
-classad_eval_native(String, Context, RescopeList, Result) :- !,
-    parse(String, Expr), classad_eval(Expr, Context, RescopeList, Result).
 
 % Used to keep track of variable "goal stack", for cyclic expr detection:
 :- dynamic evvg/2.
@@ -133,7 +124,7 @@ atomic_expr('[reltime]'(_)).
 atomic_expr('[classad]'(_)).
 atomic_expr(error).
 
-variable(V) :- atom(V), V \= [], \+classad_parser:reserved_word(V).
+variable(V) :- atom(V), V \= [], \+classad_common:reserved_word(V).
 
 arithmetic_op('+').
 arithmetic_op('-').

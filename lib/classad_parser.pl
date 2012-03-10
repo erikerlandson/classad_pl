@@ -1,13 +1,24 @@
 :- module(classad_parser,
           [parse/2,            % parse(+String, -ExprTree)
-           parse_tl/2          % parse_tl(+TokenList, -ExprTree)
+           classad_eval_native/3,     % classad_eval_native(+String, +Context, -Result)
+           classad_eval_native/4      % classad_eval_native(+String, +Context, +RescopeList, -Result)
           ]).
 
 :- use_module(library(lists)).
 :- use_module(library(assoc)).
 
-:- use_module(classad_eval, [classad_eval/3]).
+:- use_module(classad_common).
 :- use_module(classad_lexer).
+:- use_module(classad_eval, [classad_eval/3, classad_eval/4]).
+
+
+% Parse String as a native syntax classad expression, and evaluate it in Context
+classad_eval_native(String, Context, Result) :-
+    parse(String, Expr), classad_eval(Expr, Context, Result), !.
+
+classad_eval_native(String, Context, RescopeList, Result) :- !,
+    parse(String, Expr), classad_eval(Expr, Context, RescopeList, Result).
+
 
 :- dynamic macro_context/1.
 
@@ -22,19 +33,6 @@ parse(A, E) :- atom(A), !, atom_codes(A, S), parse(S, E).
 
 % invoke the grammar rule predicates on a token list to get an expr-tree
 parse_tl(TL, E) :- call_cleanup(expr(E, TL, []), retractall(macro_context(_))), !.
-
-% reserved words in the classad spec
-reserved_word(W) :- reserved_expr(W).
-reserved_word(W) :- reserved_op(W).
-
-reserved_expr(true).
-reserved_expr(false).
-reserved_expr(parent).
-reserved_expr(undefined).
-reserved_expr(error).
-
-reserved_op(is).
-reserved_op(isnt).
 
 eq_op('==').
 eq_op('!=').
@@ -168,14 +166,18 @@ paren(E) --> ['('], expr(E), [')'].
 
 % reserved identifiers that are valid atomic expression values
 % does not include reserved words that are operators
-reserved(R) --> [R], { reserved_expr(R) }.
+reserved(R) --> [R], { classad_common:reserved_expr(R) }.
 
 % numbers, strings, identifiers:
 num(N) --> [N], { number(N) }.
 str(S) --> [S], { S='[str]'(_) }.
-ident(I) --> [I], { atom(I), \+reserved_word(I) }.
+ident(I) --> [I], { atom(I), \+classad_common:reserved_word(I) }.
 
 % macro eval:
+macro(E) --> ['$','('], expr(SE), [')'], {
+    (macro_context(C) ; C = []),
+    classad_eval(SE, C, E)
+    }.
 macro(E) --> ['$'], ident(V), {
     (macro_context(C) ; C = []),
     classad_eval(V, C, E)
