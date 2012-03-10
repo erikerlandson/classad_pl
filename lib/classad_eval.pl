@@ -184,6 +184,8 @@ promote_for_arithmetic(false, 0).
 promote_for_arithmetic(undefined, undefined).
 promote_for_arithmetic('[abstime]'(T,Z), '[abstime]'(T,Z)).
 promote_for_arithmetic('[reltime]'(T), '[reltime]'(T)).
+promote_for_arithmetic('[str]'(S), '[str]'(S)).
+promote_for_arithmetic(L, L) :- is_list(L).
 promote_for_arithmetic(_, error).
 
 promote_to_boolean(true, true).
@@ -222,6 +224,8 @@ ev_strict_binary('+', X, Y, R) :- number(X), number(Y), R is X + Y.
 ev_strict_binary('+', '[abstime]'(X,Z), '[reltime]'(Y), '[abstime]'(R,Z)) :- R is X+Y.
 ev_strict_binary('+', '[reltime]'(X), '[abstime]'(Y,Z), '[abstime]'(R,Z)) :- R is X+Y.
 ev_strict_binary('+', '[reltime]'(X), '[reltime]'(Y), '[reltime]'(R)) :- R is X+Y.
+ev_strict_binary('+', '[str]'(S1), '[str]'(S2), '[str]'(R)) :- concat_atom([S1,S2], R).
+ev_strict_binary('+', L1, L2, R) :- is_list(L1), is_list(L2), append(L1, L2, R).
 ev_strict_binary('-', X, Y, R) :- number(X), number(Y), R is X - Y.
 ev_strict_binary('-', '[abstime]'(X,_), '[abstime]'(Y,_), '[reltime]'(R)) :- R is X-Y.
 ev_strict_binary('-', '[abstime]'(X,Z), '[reltime]'(Y), '[abstime]'(R,Z)) :- R is X-Y.
