@@ -198,6 +198,12 @@ test('add 11') :-
     classad_eval_native("a", C, R),
     R == undefined.
 
+test('add str') :-
+    classad_eval_native("'fred' + ' loves ' + '' + 'wilma'", [], '[str]'('fred loves wilma')).
+
+test('add list') :-
+    classad_eval_native("{2} + {} + {3, 5}", [], [2,3,5]).
+
 test('sub 1') :-
     parse("[a = 3 - 2;]", C),
     classad_eval_native("a", C, R),
