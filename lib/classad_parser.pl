@@ -146,7 +146,7 @@ assign(Mi, Mo) --> ident(V), ['='], expr(E), { put_assoc(V, Mi, E, Mo) }.
 list(E) --> ['{'], exprseq(E), ['}'].
 
 % function calls are of the typical form: f(a1, a2, ...)
-func(E) --> ident(F), ['('], exprseq(A), [')'], { E=..[F,A] }.
+func('[func]'(F,A)) --> ident(F), ['('], exprseq(A), [')'].
 
 % a comma-separated sequence of expressions, possibly empty
 exprseq([E|R]) --> expr(E), exprrest(R).

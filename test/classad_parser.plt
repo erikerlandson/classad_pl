@@ -23,15 +23,15 @@ test('num expr') :-
 
 test('func 0') :-
     parse("f()", E),
-    E == f([]).
+    E == '[func]'(f,[]).
 
 test('func 1') :-
     parse("f(a)", E),
-    E == f(['a']).
+    E == '[func]'(f,['a']).
 
 test('func 2') :-
     parse("f(a, 1)", E),
-    E == f(['a', 1]).
+    E == '[func]'(f, ['a', 1]).
 
 test('paren') :-
     parse("(a)", E),
@@ -59,7 +59,7 @@ test('composed unary 2') :-
 
 test('arg nesting') :-
     parse("f(g(-1), -(-2))", E),
-    E == f([g(['-'(1)]), '-'('-'(2))]).
+    E == '[func]'(f,['[func]'(g,['-'(1)]), '-'('-'(2))]).
 
 test('* seq 1') :-
     parse("2 * a", E),
@@ -79,7 +79,7 @@ test('*/ seq 2') :-
 
 test('*/ seq 3') :-
     parse("-2 * f(b) / +a", E),
-    E == '/'('*'('-'(2),f([b])), '+'(a)).
+    E == '/'('*'('-'(2),'[func]'(f,[b])), '+'(a)).
 
 test('+ seq 1') :-
     parse("2+a", E),
