@@ -153,7 +153,7 @@ assign(Mi, Mo) --> ident(V), ['='], expr(E), { put_assoc(V, Mi, E, Mo), update_m
 list(E) --> ['{'], exprseq(E), ['}'].
 
 % function calls are of the typical form: f(a1, a2, ...)
-func(E) --> ident(F), ['('], exprseq(A), [')'], { E=..[F,A] }.
+func('[func]'(F,A)) --> ident(F), ['('], exprseq(A), [')'].
 
 % a comma-separated sequence of expressions, possibly empty
 exprseq([E|R]) --> expr(E), exprrest(R).
@@ -171,7 +171,7 @@ reserved(R) --> [R], { classad_common:reserved_expr(R) }.
 % numbers, strings, identifiers:
 num(N) --> [N], { number(N) }.
 str(S) --> [S], { S='[str]'(_) }.
-ident(I) --> [I], { atom(I), \+classad_common:reserved_word(I) }.
+ident(I) --> ['[id]'(I)].
 
 % macro eval:
 macro(E) --> ['$','('], expr(SE), [')'], {

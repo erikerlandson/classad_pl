@@ -466,11 +466,10 @@ ev_idxop(RC, L, '[str]'(S), RC, R) :- is_list(L), maplist(ev_idxop_pair(RC, '[st
 ev_idxop(RC, _, _, RC, error).
 ev_idxop_pair(C, I, B, [C, '[]'(B, I)]).
 
-
-% any pattern not matched above is assumed to be a function call f([a1[,a2...]])
-ev([C, FE], [RC, R]) :-
-    % get the function name, and evaluate argument expression list
-    FE=..[FN, AE], ev([C, AE], [_, AR]),
+% function calls
+ev([C, '[func]'(FN, AE)], [RC, R]) :-
+    % evaluate argument expression list
+    ev([C, AE], [_, AR]),
     % now invoke check for strict/non strict function call:
     evfc([C, FN, AR], [RC, R]).
 
