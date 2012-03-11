@@ -55,11 +55,9 @@ classad_eval_native("
     # classads support first-class lists:
     daemon_list = { 'MASTER' };
 
-    # macro eval is backed up by full classad eval() semantics:
-    local_daemons = $((hostname =?= condor_host) ? { 'COLLECTOR', 'SCHEDD', 'NEGOTIATOR' } : { 'STARTD' });
-
     # append to daemon list:
-    daemon_list = $(daemon_list + local_daemons);
+    # macros evaluate with full classad eval() semantics:
+    daemon_list = $(daemon_list + ((hostname =?= condor_host) ? { 'COLLECTOR', 'SCHEDD', 'NEGOTIATOR' } : { 'STARTD' }));
 ]
 ", [], CA2),
 
