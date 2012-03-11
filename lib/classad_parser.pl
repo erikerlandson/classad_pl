@@ -6,6 +6,7 @@
 :- use_module(library(lists)).
 :- use_module(library(assoc)).
 
+:- use_module(classad_common).
 :- use_module(classad_lexer).
 
 % lex and parse a string to get an expression list
@@ -163,4 +164,5 @@ reserved(R) --> [R], { reserved_expr(R) }.
 % numbers, strings, identifiers:
 num(N) --> [N], { number(N) }.
 str(S) --> [S], { S='[str]'(_) }.
-ident(I) --> [I], { atom(I), \+reserved_word(I) }.
+%ident(I) --> [I], { atom(I), \+reserved_word(I) }.
+ident(I) --> ['[id]'(I)].

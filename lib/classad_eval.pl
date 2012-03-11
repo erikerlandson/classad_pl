@@ -20,6 +20,7 @@
 :- use_module(library(date)).
 
 % classad libs:
+:- use_module(classad_common).
 :- use_module(classad_parser).
 :- use_module(classad_reltime_parser).
 
@@ -133,7 +134,7 @@ atomic_expr('[reltime]'(_)).
 atomic_expr('[classad]'(_)).
 atomic_expr(error).
 
-variable(V) :- atom(V), V \= [], \+classad_parser:reserved_word(V).
+variable(V) :- atom(V), V \= [], \+classad_common:reserved_word(V).
 
 arithmetic_op('+').
 arithmetic_op('-').

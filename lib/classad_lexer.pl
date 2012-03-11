@@ -4,6 +4,8 @@
 
 :- use_module(library(lists)).
 
+:- use_module(classad_common).
+
 % invoke the grammar rule predicates on a string to get a token list
 lex(S, TL) :- tokseq(TL, S, []), !.
 
@@ -69,7 +71,10 @@ strsqrest([C|R]) --> [C], strsqrest(R).
 
 % expansion of identifier tokens
 % identifiers are case insensitive in classad spec, so I just casefold them here.
-ident(I) --> ihead(C), irest(R), { atom_codes(A, [C|R]), downcase_atom(A, I) }.
+ident(I) --> ihead(C), irest(R), { 
+    atom_codes(A, [C|R]), downcase_atom(A, D),
+    (classad_common:reserved_word(D) -> I=D ; I='[id]'(D))
+    }.
 
 ihead(C) --> [C], { char_type(C, alpha) ; [C]="_" }.
 irest([C|R]) --> [C], { char_type(C, alnum) ; [C]="_" }, irest(R).
