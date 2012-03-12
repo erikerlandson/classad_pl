@@ -438,5 +438,23 @@ test('classad_lookup/3-rescope') :-
     Area == 12.56,
     Base = 2.72.
 
+test('serialize-1') :-
+    classad_eval_native("[]", [], CA),
+    with_output_to(atom(S1), classad_serialize(CA)), S1='[\n]\n',
+    with_output_to(atom(S2), classad_serialize(CA, [])), S2='[]'.
+
+test('serialize-2') :-
+    classad_eval_native("[x=1]", [], CA),
+    with_output_to(atom(S1), classad_serialize(CA)), S1='[\n    x=1\n]\n',
+    with_output_to(atom(S2), classad_serialize(CA, [nl])), S2='[\nx=1\n]\n',
+    with_output_to(atom(S3), classad_serialize(CA, [nl,indent(2)])), S3='[\n  x=1\n]\n',
+    with_output_to(atom(S4), classad_serialize(CA, [])), S4='[x=1]'.
+
+test('serialize-3') :-
+    classad_eval_native("[x=1;y=[w=0];z=1]", [], CA),
+    with_output_to(atom(S1), classad_serialize(CA)), S1='[\n    x=1;\n    y=[\n        w=0\n    ];\n    z=1\n]\n',
+    with_output_to(atom(S2), classad_serialize(CA,[nl])), S2='[\nx=1;\ny=[\nw=0\n];\nz=1\n]\n',
+    with_output_to(atom(S3), classad_serialize(CA,[nl,indent(2)])), S3='[\n  x=1;\n  y=[\n    w=0\n  ];\n  z=1\n]\n',
+    with_output_to(atom(S4), classad_serialize(CA,[])), S4='[x=1;y=[w=0];z=1]'.
 
 :- end_tests(classad).
