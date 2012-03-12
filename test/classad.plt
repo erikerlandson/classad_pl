@@ -425,4 +425,18 @@ test('classad_lookup/2-promotions') :-
     VBFN == 0,
     VSC == "pebbles".
 
+test('classad_lookup/3-rescope') :-
+    classad_eval_native("[pi=3.14; e=2.72]", [], Math),
+    classad_eval_native("[r = 2;  area = math.pi*r*r;  base = math.e]", [], CA),
+    classad_lookup(CA, [math=Math],
+                   [area = Area, 
+                    base = Base,
+                    [base, 2.72],
+                    [area, 12.56, real],
+                    [base, 2, as(integer)]
+                   ]),
+    Area == 12.56,
+    Base = 2.72.
+
+
 :- end_tests(classad).
