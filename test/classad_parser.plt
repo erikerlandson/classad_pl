@@ -6,6 +6,7 @@
 
 :- add_to_path('../lib').
 :- use_module(classad_parser).
+:- use_module(classad_eval).
 
 :- begin_tests(parser).
 
@@ -242,5 +243,38 @@ test('macro-3') :-
     parse("[x=1; y=$x; x=2; ca=[x=4; z=$(x+y)]; z=$(x+y);]", '[classad]'(M)),
     assoc_to_list(M, [ca-'[classad]'(M2), x-2, y-1, z-3]),
     assoc_to_list(M2, [x-4, z-5]).
+
+test('macro-4') :-
+    parse("
+[
+  x = 5;
+  y = [ x = 6; y = $(x + 1); ];
+  z = [ y = $(parent.x) ]
+]
+", '[classad]'(M)),
+assoc_to_list(M, [x-5, y-'[classad]'(MY), z-'[classad]'(MZ)]),
+assoc_to_list(MY, [x-6, y-7]),
+assoc_to_list(MZ, [y-5]).
+
+
+test('macro-5') :-
+    get_time(T0),
+    parse("[x = $(time())]", '[classad]'(M)),
+    get_time(T1),
+    assoc_to_list(M, [x-T]),
+    T0 =< T, T =< T1.
+
+
+test('macro-6') :-
+parse("
+[
+  x = 3;
+  y = [ x = 4 ];
+  z = $x + $y.x; # should evaluate to 7?
+  x = $x;
+]
+", CA),
+classad_eval(z, CA, 7), 
+classad_eval(x, CA, 3).
 
 :- end_tests(parser).
